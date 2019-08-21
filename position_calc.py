@@ -1,6 +1,5 @@
 import argparse
 import datetime
-from pprint import pprint
 import urllib.request, json
 
 CURRENT_CAPITAL = 7000
@@ -20,9 +19,9 @@ def get_entry(close):
 
 def calc(high, low, close, symbol, capital=CURRENT_CAPITAL):
     if(low > high):
-        raise ValueException('Low > High')
-    if(not (low < close < high)):
-        raise ValueException('Invalid inputs')
+        raise ValueError('Low > High', high, low, close)
+    if(not (low <= close <= high)):
+        raise ValueError('Low < Close < High not met', high, low, close)
 
     cap = capital * 0.01
     entry = high + get_entry(close)
@@ -71,11 +70,14 @@ def grab_prices(symbol):
 
     with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}") as url:
         data = json.loads(url.read().decode())
-
-    current_prices = data['Global Quote']
+    
+    try:
+        current_prices = data['Global Quote']
+    except KeyError as e:
+        raise KeyError("JSON Data Error")
 
     if(current_prices['07. latest trading day'] != today):
-        raise Exception('Data for {0} is not available'.format(today))
+        raise ValueError('Data for {0} is not available'.format(today))
 
     high = float(current_prices['03. high'])
     low = float(current_prices['04. low'])
@@ -85,14 +87,14 @@ def grab_prices(symbol):
     return high, low, open_price, close_price
 
 def main(symbols):
-    for symbol in symbols:
+    for symbol in symbols: 
         try:
             high, low, open_price, close = grab_prices(symbol)
-        except Exception as e:
-            print(symbol, e)
+            print('*'*50)
+            print(calc(high, low, close, symbol))
 
-        print('*'*50)
-        print(calc(high, low, close, symbol))
+        except (ValueError, KeyError) as e:
+            print("Process Error for stock", symbol.upper(), e)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Stock Symbol')
