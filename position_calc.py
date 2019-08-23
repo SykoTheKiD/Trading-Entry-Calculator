@@ -58,17 +58,17 @@ def calc(stock, capital=CURRENT_CAPITAL):
     if(not (stock.low <= stock.close <= stock.high)):
         raise ValueError('Low < Close < High not met', high, low, close)
 
-    cap = capital * 0.01
-    entry = stock.high + get_entry(stock.close)
-    stop = stock.low - get_entry(stock.close)
-    r1 = entry - stop
-    r15 = r1 * 1.5
-    r2 = r1 * 2
-    r3 = r1 * 2.5
-    r2_exit = entry + r2
-    r15_exit = entry + r15
-    r3_exit = entry + r3
-    pos_size = cap/r1
+    cap = round(capital * 0.01, 2)
+    entry = round(stock.high + get_entry(stock.close), 2)
+    stop = round(stock.low - get_entry(stock.close), 2)
+    r1 = round(entry - stop, 2)
+    r15 = round(r1 * 1.5, 2)
+    r2 = round(r1 * 2, 2)
+    r3 = round(r1 * 2.5, 2)
+    r2_exit = round(entry + r2, 2)
+    r15_exit = round(entry + r15, 2)
+    r3_exit = round(entry + r3, 2)
+    pos_size = round(cap/r1)
 
     profit_r2 = r2 * pos_size
 
@@ -84,22 +84,20 @@ def calc(stock, capital=CURRENT_CAPITAL):
     2R: {5} -> {7}
     3R: {6} -> {9}
     Potential Profit: {11}
-    '''.format(round(cap, 2),
-            round(entry, 2),
-            round(stop, 2),
-            round(r1, 2),
-            round(r15, 2),
-            round(r2, 2),
-            round(r3, 2),
-            round(r2_exit, 2),
-            round(r15_exit, 2),
-            round(r3_exit, 2),
-            round(pos_size),
-            round(profit_r2, 2),
+    '''.format(cap,
+            entry,
+            stop,
+            r1,
+            r15,
+            r2,
+            r3,
+            r2_exit,
+            r15_exit,
+            r3_exit,
+            pos_size,
+            profit_r2,
             stock.symbol,
-            round(entry+r1, 2)), Trade(stock, pos_size, entry, stop, {1: round(entry+r1, 2),
-                2: round(r2_exit, 2),
-                3: round(r3_exit, 2)})
+            entry+r1), Trade(stock, pos_size, entry, stop, {1: entry+r1, 2: r2_exit, 3: r3_exit})
 
 def grab_prices(symbol):
     '''
