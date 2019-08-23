@@ -72,32 +72,20 @@ def calc(stock, capital=CURRENT_CAPITAL):
 
     profit_r2 = r2 * pos_size
 
-    return '''
-    SYMBOL: {12}
+    trade = Trade(stock, pos_size, entry, stop, {1: round(entry+r1, 2), 15: r15_exit, 2: r2_exit, 3: r3_exit})
+    return f'''
+    SYMBOL: {stock.symbol}
 
-    Capital Risk: {0}
-    Entry: {1}
-    Stop Loss: {2}
-    Position Size: {10} shares
-    1R: {3} -> {13}
-    1.5R: {4} -> {8}
-    2R: {5} -> {7}
-    3R: {6} -> {9}
-    Potential Profit: {11}
-    '''.format(cap,
-            entry,
-            stop,
-            r1,
-            r15,
-            r2,
-            r3,
-            r2_exit,
-            r15_exit,
-            r3_exit,
-            pos_size,
-            profit_r2,
-            stock.symbol,
-            entry+r1), Trade(stock, pos_size, entry, stop, {1: entry+r1, 2: r2_exit, 3: r3_exit})
+    Capital Risk: {cap}
+    Entry: {trade.entry}
+    Stop Loss: {trade.stop}
+    Position Size: {trade.pos_size} shares
+    1R: {r1} -> {trade.targets[1]}
+    1.5R: {r15} -> {trade.targets[15]}
+    2R: {r2} -> {trade.targets[2]}
+    3R: {r3} -> {trade.targets[3]}
+    Potential Profit: {profit_r2}
+    '''
 
 def grab_prices(symbol):
     '''
@@ -143,22 +131,16 @@ def summarize(trades):
             highest = cur_stock
             highest_price = cur_price
     try:
-        print('''
+        print(f'''
         Stock List Summary
         *******************
-        Number of Stocks: {0}
-        Total Potential Profit: {1}
-        Total Potential Loss: {6}
-        Lowest Price Stock: {2} @ {3}/shr
-        Highest Price Stock: {4} @ {5}/shr
-        '''.format(num_trades,
-            0.01*CURRENT_CAPITAL*2*num_trades,
-            lowest.symbol,
-            lowest.close,
-            highest.symbol,
-            highest.close,
-            0.01*CURRENT_CAPITAL*num_trades
-        ))
+        Number of Stocks: {num_trades}
+        Total Potential Profit: {0.01*CURRENT_CAPITAL*2*num_trades}
+        Total Potential Loss: {0.01*CURRENT_CAPITAL*num_trades}
+        Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
+        Highest Price Stock: {highest.symbol} @ {highest.close}/shr
+        ''')
+
     except AttributeError as e:
         pass
 
@@ -170,15 +152,14 @@ def summarize(trades):
     if(num_trades > 5):
         msg = "Warning: Total capital at risk exceeds 5%"
 
-    print('''
+    print(f'''
     Trade Summary
     ***************
-    Total Capital Needed: ${0}
-    Total Number of Trades: {1}
+    Total Capital Needed: ${total_capital_reqd}
+    Total Number of Trades: {num_trades}
 
-    {2}
-    '''.format(round(total_capital_reqd, 2) , num_trades, msg))
-
+    {msg}
+    ''')
 
 def main(symbols):
     trades = []
