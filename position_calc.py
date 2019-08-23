@@ -77,7 +77,7 @@ def calc(stock, capital=CURRENT_CAPITAL):
             round(r3_exit, 2),
             round(pos_size),
             round(profit_r2, 2),
-            stock.symbol.upper(),
+            stock.symbol,
             round(entry+r1, 2)), Trade(stock, pos_size, entry, stop, {1: round(entry+r1, 2),
                 2: round(r2_exit, 2),
                 3: round(r3_exit, 2)})
@@ -101,7 +101,7 @@ def grab_prices(symbol):
     low = float(current_prices['04. low'])
     open_price = float(current_prices['02. open'])
     close_price = float(current_prices['05. price'])
-    return Stock(high, low, close_price, open_price, symbol)
+    return Stock(high, low, close_price, open_price, symbol.upper())
 
 def summarize(trades):
     num_trades = len(trades)
@@ -149,11 +149,11 @@ def summarize(trades):
     print('''
     Trade Summary
     ***************
-    Total Capital Needed: {0}
+    Total Capital Needed: ${0}
     Total Number of Trades: {1}
 
     {2}
-    '''.format(total_capital_reqd, num_trades, msg))
+    '''.format(round(total_capital_reqd, 2) , num_trades, msg))
 
 
 def main(symbols):
