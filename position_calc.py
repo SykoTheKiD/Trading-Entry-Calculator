@@ -1,11 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+''' My personal swing trading entry formula
+'''
+
+import urllib.request, json
 import argparse
 import datetime
-import urllib.request, json
+import sys
 
-CURRENT_CAPITAL = 7000
 API_KEY = 'ZU1OCRW90EFV4XYM'
+CURRENT_CAPITAL = 7000
 
 class Stock:
+    '''
+    Holds one candlestick
+    '''
     def __init__(self, high, low, close, open_price, symbol):
         self.high = high
         self.low = low
@@ -14,6 +24,9 @@ class Stock:
         self.symbol = symbol
 
 class Trade:
+    '''
+    Holds the calculated entry and exit for a trade
+    '''
     def __init__(self, stock, position_size, entry, stop, targets):
         self.stock = stock
         self.position_size = position_size
@@ -22,6 +35,9 @@ class Trade:
         self.targets = targets
 
 def get_entry(close):
+    '''
+    Calculate how far above and below to place your entry/stop
+    '''
     if close < 5:
         return 0.01
     elif 5 <= close < 10:
@@ -34,6 +50,9 @@ def get_entry(close):
         return 0.1
 
 def calc(stock, capital=CURRENT_CAPITAL):
+    '''
+    Calculate the entry, stop and exit prices for a given stock
+    '''
     if(stock.low > stock.high):
         raise ValueError('Low > High')
     if(not (stock.low <= stock.close <= stock.high)):
@@ -83,6 +102,10 @@ def calc(stock, capital=CURRENT_CAPITAL):
                 3: round(r3_exit, 2)})
 
 def grab_prices(symbol):
+    '''
+    Get the current price for a given symbol
+    '''
+
     now = datetime.datetime.now()
     today = now.strftime("%Y-%m-%d")
 
@@ -104,8 +127,11 @@ def grab_prices(symbol):
     return Stock(high, low, close_price, open_price, symbol.upper())
 
 def summarize(trades):
+    '''
+    Summarize the trades and the costs
+    '''
     num_trades = len(trades)
-    lowest_price, highest_price = 9999, -9999
+    lowest_price, highest_price = sys.maxsize, -sys.maxsize
     lowest, highest = None, None
     for trade in trades:
         cur_stock = trade.stock
@@ -161,7 +187,7 @@ def main(symbols):
     for symbol in symbols:
         try:
             stock = grab_prices(symbol)
-            print('*'*50)
+            print('*' * 50)
             entry_calcs, trade_obj = calc(stock)
             print(entry_calcs)
             trades.append(trade_obj)
