@@ -4,13 +4,15 @@
 ''' My personal swing trading entry formula
 '''
 
-import urllib.request, json
+import urllib.request
 import argparse
 import datetime
+import json
 import sys
 
 API_KEY = 'ZU1OCRW90EFV4XYM'
 CURRENT_CAPITAL = 7000
+
 
 class Stock:
     '''
@@ -23,6 +25,7 @@ class Stock:
         self.open_price = open_price
         self.symbol = symbol
 
+
 class Trade:
     '''
     Holds the calculated entry and exit for a trade
@@ -33,6 +36,7 @@ class Trade:
         self.entry = entry
         self.stop = stop
         self.targets = targets
+
 
 def get_entry(close):
     '''
@@ -48,6 +52,7 @@ def get_entry(close):
         return 0.05
     else:
         return 0.1
+
 
 def calc(stock, capital=CURRENT_CAPITAL):
     '''
@@ -87,6 +92,7 @@ def calc(stock, capital=CURRENT_CAPITAL):
     Potential Profit: {profit_r2}
     '''
 
+
 def grab_prices(symbol):
     '''
     Get the current price for a given symbol
@@ -111,6 +117,7 @@ def grab_prices(symbol):
     open_price = float(current_prices['02. open'])
     close_price = float(current_prices['05. price'])
     return Stock(high, low, close_price, open_price, symbol.upper())
+
 
 def summarize(trades):
     '''
@@ -161,6 +168,7 @@ def summarize(trades):
     {msg}
     ''')
 
+
 def main(symbols):
     trades = []
     for symbol in symbols:
@@ -175,6 +183,7 @@ def main(symbols):
             print("Process Error for stock", symbol.upper(), e)
 
     summarize(trades)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Stock Symbol')
