@@ -79,18 +79,18 @@ def calc(stock, capital=CURRENT_CAPITAL):
 
     trade = Trade(stock, pos_size, entry, stop, {1: round(entry+r1, 2), 15: r15_exit, 2: r2_exit, 3: r3_exit})
     return f'''
-    SYMBOL: {stock.symbol}
+        SYMBOL: {stock.symbol}
 
-    Capital Risk: {cap}
-    Entry: {trade.entry}
-    Stop Loss: {trade.stop}
-    Position Size: {trade.pos_size} shares
-    1R: {r1} -> {trade.targets[1]}
-    1.5R: {r15} -> {trade.targets[15]}
-    2R: {r2} -> {trade.targets[2]}
-    3R: {r3} -> {trade.targets[3]}
-    Potential Profit: {profit_r2}
-    '''
+        Capital Risk: {cap}
+        Entry: {trade.entry}
+        Stop Loss: {trade.stop}
+        Position Size: {trade.position_size} shares
+        1R: {r1} -> {trade.targets[1]}
+        1.5R: {r15} -> {trade.targets[15]}
+        2R: {r2} -> {trade.targets[2]}
+        3R: {r3} -> {trade.targets[3]}
+        Potential Profit: {profit_r2}
+    ''', trade
 
 
 def grab_prices(symbol):
@@ -108,6 +108,15 @@ def grab_prices(symbol):
         current_prices = data['Global Quote']
     except KeyError as e:
         raise KeyError("JSON Data Error")
+
+    ## If current day is a weekend move back current day to closest previous trading day
+    ## TODO: Adapt similar change for US holidays
+    if(now.weekday() == 5):
+        now = now - datetime.timedelta(days=1)
+    elif(now.weekday() == 6):
+        now = now - datetime.timedelta(days=2)
+
+    today = now.strftime("%Y-%m-%d")
 
     if(current_prices['07. latest trading day'] != today):
         raise ValueError('Data for {0} is not available'.format(today))
@@ -137,19 +146,16 @@ def summarize(trades):
         if cur_price > highest_price:
             highest = cur_stock
             highest_price = cur_price
-    try:
-        print(f'''
-        Stock List Summary
-        *******************
-        Number of Stocks: {num_trades}
-        Total Potential Profit: {0.01*CURRENT_CAPITAL*2*num_trades}
-        Total Potential Loss: {0.01*CURRENT_CAPITAL*num_trades}
-        Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
-        Highest Price Stock: {highest.symbol} @ {highest.close}/shr
-        ''')
 
-    except AttributeError as e:
-        pass
+    print(f'''
+Stock List Summary
+*******************
+Number of Stocks: {num_trades}
+Total Potential Profit: {0.01*CURRENT_CAPITAL*2*num_trades}
+Total Potential Loss: {0.01*CURRENT_CAPITAL*num_trades}
+Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
+Highest Price Stock: {highest.symbol} @ {highest.close}/shr
+    ''')
 
     total_capital_reqd = 0
     for trade in trades:
@@ -160,12 +166,12 @@ def summarize(trades):
         msg = "Warning: Total capital at risk exceeds 5%"
 
     print(f'''
-    Trade Summary
-    ***************
-    Total Capital Needed: ${total_capital_reqd}
-    Total Number of Trades: {num_trades}
+Trade Summary
+***************
+Total Capital Needed: ${round(total_capital_reqd, 2)}
+Total Number of Trades: {num_trades}
 
-    {msg}
+{msg}
     ''')
 
 
@@ -182,6 +188,7 @@ def main(symbols):
         except (ValueError, KeyError) as e:
             print("Process Error for stock", symbol.upper(), e)
 
+    print('*' * 50)
     summarize(trades)
 
 
