@@ -7,6 +7,7 @@
 import urllib.request
 import argparse
 import datetime
+import holidays
 import json
 import sys
 
@@ -23,7 +24,7 @@ class Stock:
         self.low = low
         self.close = close
         self.open_price = open_price
-        self.symbol = symbol
+        self.symbol = symbol.upper()
 
 
 class Trade:
@@ -37,6 +38,8 @@ class Trade:
         self.stop = stop
         self.targets = targets
 
+def line_break(length):
+    print('*' * length)
 
 def get_entry(close):
     '''
@@ -99,7 +102,6 @@ def grab_prices(symbol):
     '''
 
     now = datetime.datetime.now()
-    today = now.strftime("%Y-%m-%d")
 
     with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}") as url:
         data = json.loads(url.read().decode())
@@ -110,11 +112,14 @@ def grab_prices(symbol):
         raise KeyError("JSON Data Error")
 
     ## If current day is a weekend move back current day to closest previous trading day
-    ## TODO: Adapt similar change for US holidays
     if(now.weekday() == 5):
         now = now - datetime.timedelta(days=1)
     elif(now.weekday() == 6):
         now = now - datetime.timedelta(days=2)
+    else:
+        us_holidays = holidays.UnitedStates()
+        while(now in us_holidays):
+            now = now - datetime.timedelta(days=1)
 
     today = now.strftime("%Y-%m-%d")
 
@@ -125,7 +130,7 @@ def grab_prices(symbol):
     low = float(current_prices['04. low'])
     open_price = float(current_prices['02. open'])
     close_price = float(current_prices['05. price'])
-    return Stock(high, low, close_price, open_price, symbol.upper())
+    return Stock(high, low, close_price, open_price, symbol)
 
 
 def summarize(trades):
@@ -146,16 +151,19 @@ def summarize(trades):
         if cur_price > highest_price:
             highest = cur_stock
             highest_price = cur_price
-
-    print(f'''
-Stock List Summary
-*******************
-Number of Stocks: {num_trades}
-Total Potential Profit: {0.01*CURRENT_CAPITAL*2*num_trades}
-Total Potential Loss: {0.01*CURRENT_CAPITAL*num_trades}
-Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
-Highest Price Stock: {highest.symbol} @ {highest.close}/shr
-    ''')
+    try:
+        print(f'''
+    Stock List Summary
+    *******************
+    Number of Stocks: {num_trades}
+    Total Potential Profit: {0.01*CURRENT_CAPITAL*2*num_trades}
+    Total Potential Loss: {0.01*CURRENT_CAPITAL*num_trades}
+    Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
+    Highest Price Stock: {highest.symbol} @ {highest.close}/shr
+        ''')
+    except AttributeError:
+        print("Summary Failed")
+        return -1
 
     total_capital_reqd = 0
     for trade in trades:
@@ -180,7 +188,7 @@ def main(symbols):
     for symbol in symbols:
         try:
             stock = grab_prices(symbol)
-            print('*' * 50)
+            line_break(50)
             entry_calcs, trade_obj = calc(stock)
             print(entry_calcs)
             trades.append(trade_obj)
@@ -188,12 +196,12 @@ def main(symbols):
         except (ValueError, KeyError) as e:
             print("Process Error for stock", symbol.upper(), e)
 
-    print('*' * 50)
+    line_break(50)
     summarize(trades)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Stock Symbol')
+    parser = argparse.ArgumentParser(description='Stock Symbols')
     parser.add_argument('symbols', nargs='+', type=str)
     args = parser.parse_args()
     main(args.symbols)
