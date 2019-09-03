@@ -112,8 +112,8 @@ def grab_prices(symbol):
         raise KeyError("JSON Data Error")
 
     ## If current day is a weekend move back current day to closest previous trading day
-    us_holidays = holidays.UnitedStates() 
-    while(now.weekday() == 5 or now.weekday() == 6 or now in us_holidays):
+    us_holidays = holidays.UnitedStates()
+    while(5 <=now.weekday() <= 6 or now in us_holidays):
         now = now - datetime.timedelta(days=1)
 
     today = now.strftime("%Y-%m-%d")
