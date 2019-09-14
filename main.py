@@ -78,7 +78,7 @@ def calc(stock, capital=CURRENT_CAPITAL):
     r3_exit = round(entry + r3, 2)
     pos_size = round(cap/r1)
 
-    profit_r2 = r2 * pos_size
+    profit_r2 = round(r2 * pos_size, 2)
 
     trade = Trade(stock, pos_size, entry, stop, {1: round(entry+r1, 2), 15: r15_exit, 2: r2_exit, 3: r3_exit})
     return f'''
@@ -95,13 +95,24 @@ def calc(stock, capital=CURRENT_CAPITAL):
         Potential Profit: {profit_r2}
     ''', trade
 
+def get_last_trading_day():
+    now = datetime.datetime.now()
+    ## If current day is a weekend move back current day to closest previous trading day
+    us_holidays = holidays.UnitedStates()
+    while(5 <= now.weekday() <= 6 or now in us_holidays):
+        now = now - datetime.timedelta(days=1)
+
+    time = now.time()
+    if(datetime.datetime.now() == now and time.hour <=9 and time.minute < 30):
+        now = now - datetime.timedelta(days=1)
+
+    return now
 
 def grab_prices(symbol):
     '''
     Get the current price for a given symbol
     '''
 
-    now = datetime.datetime.now()
 
     with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}") as url:
         data = json.loads(url.read().decode())
@@ -110,12 +121,7 @@ def grab_prices(symbol):
         current_prices = data['Global Quote']
     except KeyError as e:
         raise KeyError("JSON Data Error")
-
-    ## If current day is a weekend move back current day to closest previous trading day
-    us_holidays = holidays.UnitedStates()
-    while(5 <=now.weekday() <= 6 or now in us_holidays):
-        now = now - datetime.timedelta(days=1)
-
+    now = get_last_trading_day()
     today = now.strftime("%Y-%m-%d")
 
     if(current_prices['07. latest trading day'] != today):
@@ -166,7 +172,9 @@ def summarize(trades):
 
     msg = str()
     if(num_trades > 5):
-        msg = "Warning: Total capital at risk exceeds 5%"
+        msg += "**Warning: Total capital at risk exceeds 5%\n**"
+    if total_capital_reqd > CURRENT_CAPITAL:
+        msg += f"***! Total capital required (${round(total_capital_reqd, 2)}) exceeds current capital (${CURRENT_CAPITAL}) !***"
 
     print(f'''
 Trade Summary
