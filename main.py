@@ -13,6 +13,7 @@ import sys
 
 API_KEY = 'ZU1OCRW90EFV4XYM'
 CURRENT_CAPITAL = 7000
+COMMISSION_COST = 20
 
 
 class Stock:
@@ -77,7 +78,8 @@ def calc(stock, capital=CURRENT_CAPITAL):
     r15_exit = round(entry + r15, 2)
     r3_exit = round(entry + r3, 2)
     pos_size = round(cap/r1)
-
+    break_even_price = round(entry + COMMISSION_COST / pos_size, 2)
+    break_even_differential = round(break_even_price - entry, 2)
     profit_r2 = round(r2 * pos_size, 2)
 
     trade = Trade(stock, pos_size, entry, stop, {1: round(entry+r1, 2), 15: r15_exit, 2: r2_exit, 3: r3_exit})
@@ -88,6 +90,7 @@ def calc(stock, capital=CURRENT_CAPITAL):
         Entry: {trade.entry}
         Stop Loss: {trade.stop}
         Position Size: {trade.position_size} shares
+        B/E Price: {break_even_price} -> +{break_even_differential}
         1R: {r1} -> {trade.targets[1]}
         1.5R: {r15} -> {trade.targets[15]}
         2R: {r2} -> {trade.targets[2]}
