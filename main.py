@@ -10,6 +10,7 @@ import datetime
 import holidays
 import json
 import sys
+import ssl
 
 API_KEY = 'ZU1OCRW90EFV4XYM'
 CURRENT_CAPITAL = 7000
@@ -117,7 +118,7 @@ def grab_prices(symbol):
     '''
 
 
-    with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}") as url:
+    with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}", context=ssl.SSLContext()) as url:
         data = json.loads(url.read().decode())
 
     try:
