@@ -103,7 +103,7 @@ def get_last_trading_day():
     now = datetime.datetime.now()
     ## If current day is a weekend move back current day to closest previous trading day
     us_holidays = holidays.UnitedStates()
-    while(5 <= now.weekday() <= 6 or now in us_holidays):
+    while(5 <= now.weekday() <= 6 and now.weekday() in us_holidays):
         now = now - datetime.timedelta(days=1)
 
     time = now.time()
@@ -129,6 +129,7 @@ def grab_prices(symbol):
     today = now.strftime("%Y-%m-%d")
 
     if(current_prices['07. latest trading day'] != today):
+        print(current_prices['07. latest trading day'])
         raise ValueError('Data for {0} is not available'.format(today))
 
     high = float(current_prices['03. high'])
