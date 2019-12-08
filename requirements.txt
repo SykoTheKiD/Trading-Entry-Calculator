@@ -1,0 +1,4 @@
+holidays
+dotenv
+ssl
+argparse
