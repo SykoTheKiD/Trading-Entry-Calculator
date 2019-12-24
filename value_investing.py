@@ -1,76 +1,90 @@
 import urllib.request
+import output as op
+import operator
 import json
-import ssl
 
-CASH_FLOW_STATEMENT = "cash-flow-statement"
-BALANCE_SHEET = "balance-sheet-statement"
-INCOME_STATEMENT = "income-statement"
+def calculate_current_ratio(balance_sheet):
+    financial_statements = balance_sheet['financials']
+    float_val_liabilities = float(
+        financial_statements[0]['Total current liabilities'])
+    float_val_assets = float(
+        financial_statements[0]['Total current assets'])
+    return float_val_assets/float_val_liabilities
 
+def calculate_debt_to_equity_ratio(balance_sheet):
+    financial_statements = balance_sheet['financials']
+    de_ratios = []
+    for i in range(len(balance_sheet)):
+        float_val_liabilities = float(
+            financial_statements[i]['Total liabilities'])
+        float_val_equity = float(
+            financial_statements[i]['Total shareholders equity'])
+    return float_val_liabilities/float_val_equity
 
-def _get_financial_statement(statement_type, stocks):
-    with urllib.request.urlopen(f"https://financialmodelingprep.com/api/v3/financials/{statement_type}/{stocks}", context=ssl.SSLContext()) as url:
-        data = json.loads(url.read().decode())
-    return data
+def cash_flow(cash_flow_statements):
+    financial_statements = cash_flow_statements['financials']
+    cash_flow_from_operations = []
+    for i in range(len(financial_statements)):
+        try:
+            float_cash_flow_from_ops = float(
+                financial_statements[i]['Operating Cash Flow'])
+            cash_flow_from_operations.append(float_cash_flow_from_ops)
+        except ValueError:
+            print("ERROR CASH FLOW")
+    return fuzzy_increase(CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_operations)
 
-def _fuzzy_increase(sequence):
-    def __check_increasing(seq):
-        for i in range(len(seq)-1):
-            if seq[i] > seq[i+1]:
-                return False
-        return True
+def eps(cash_flow_statements):
+    pass
 
-    check = __check_increasing(sequence)
-    if check: return True
-    # Check if removing an item will make a strictly increasing list
-    if __check_increasing(sequence[check-1:check] + sequence[check+1:]) or __check_increasing(sequence[check:check+1] + sequence[check+2:]):
-        return True
-    # If not return False, since more than 1 element needs to be removed
-    return False
-
-def score_statement(statement):
-    score = 0  # max score 7.5, last 5 years are weighted more
-    revenue_growths = []
+def score_statement_attribute(statement, statement_attribute):
+    float_vals = []
     financial_statements = statement['financials']
     try:
         for i in range(len(financial_statements)):
-            rev_float = float(financial_statements[i]['Revenue Growth'])
-            if rev_float > 0:
-                if i <= 5: score += 1
-                else: score += 0.5
-        revenue_growths.append(rev_float)
+            float_val = float(financial_statements[i][statement_attribute.attribute_name])
+            float_vals.append(float_val)
     except ValueError:
-        print("ERROR " + financial_statements[i]['Revenue Growth'])
-    if _fuzzy_increase(revenue_growths): score +=1
-    return score
+        print("ERROR " + financial_statements[i][statement_attribute.attribute_name])
+    return fuzzy_increase(statement_attribute, float_vals)
 
 
 def multi_stock_value_score(statements):
+    results = []
     for statement in statements['financialStatementList']:
-        score_statement(statement)
-    return 0
+        results.append(screen_income_statement(statement))
+    return results
+
+def screen_income_statement(statement):
+    results = {
+        REVENUE_ATTR: op.clean_boolean(score_statement_attribute(statement, REVENUE_ATTR)),
+        GROSS_PROFIT_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, GROSS_PROFIT_ATTR)),
+        GROSS_MARGIN_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, GROSS_MARGIN_ATTR)),
+        NET_PROFIT_MARGIN_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, NET_PROFIT_MARGIN_ATTR)),
+        EPS_DILUTED_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, EPS_DILUTED_ATTR))
+    }
+    return results
+
+
 
 def main(stock_list):
     if len(stock_list) == 0: return
     stocks = ','.join(symbol.upper() for symbol in stock_list)
     income_statements = _get_financial_statement(INCOME_STATEMENT, stocks)
-    balance_sheets = _get_financial_statement(BALANCE_SHEET, stocks)
+    balance_sheets = _get_financial_statement(BALANCE_SHEET, stocks, quarterly=True)
     cash_flow_statements = _get_financial_statement(
         CASH_FLOW_STATEMENT, stocks)
-
     if len(stock_list) > 1:
-        multi_stock_value_score(income_statements)
+        print(multi_stock_value_score(income_statements))
     else:
-        score_statement(income_statements)
+        print(screen_income_statement(income_statements))
 
 if __name__ == "__main__":
     main(["AAPL"])
 
 # income statement
-# annual gross profit inc yoy
-# net income inc yoy
-# revenue relatively inc yoy
-# gross margin inc/consistent yoy
-# net margin inc/consis yoy
-# earnings per share inc yoy diluted
-# gross profit higher than industry
-# net profit higher than industry
+# TODO gross profit higher than industry
+# TODO net profit higher than industry

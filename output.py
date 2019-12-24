@@ -3,13 +3,17 @@
 import sys
 import os
 
-CURRENT_CAPITAL = os.getenv['CURRENT_CAPITAL']
+CURRENT_CAPITAL = 7000 ## os.getenv['CURRENT_CAPITAL']
 
 def line_break(length=50):
     print('*' * length)
 
 def _clean_number(number):
     return round(number, 2)
+
+def clean_boolean(bool):
+    if bool: return "PASS"
+    else: return "FAIL"
 
 def print_swing_report(trades):
     '''

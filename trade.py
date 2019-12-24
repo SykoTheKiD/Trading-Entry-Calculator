@@ -11,6 +11,6 @@ class Trade:
         self.targets = targets
 
 class Investment:
-    def __init__(self):
+    def __init__(self, stock, revenue_score):
         self.stock = stock
-        sel
+        self.revenue_score = revenue_score
