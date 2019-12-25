@@ -1,6 +1,6 @@
 import statement_retrieval as stret
 from pprint import pprint
-
+import output as op
 
 NUM_YEARS_PROJECTED = 10
 
@@ -182,7 +182,7 @@ def main():
             "Intrinsic Value": intrisic_value_net_income
         }
     }
-    pprint(results)
+    op.display_intrinsic_value(results)
 
 if __name__ == "__main__":
     main()
