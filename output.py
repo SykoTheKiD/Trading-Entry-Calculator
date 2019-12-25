@@ -87,15 +87,16 @@ def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r,delta_2
 
 def display_intrinsic_value(results):
     print(f'''
-        SYMBOL:{results["Symbol"]}
-        Total Debt: {results["Total Debt"]:,}
-        Total Cash on Hand: {results["Total Cash on Hand"]:,}
+        Company: {results["Company"]}
+        Symbol: {results["Symbol"]}
+        Total Debt: ${results["Total Debt"]:,}
+        Total Cash on Hand: ${results["Total Cash on Hand"]:,}
         EPS 5Y: {results["EPS 5Y"]*100}%
         Projected Growth after 5Y: {results["Projected Growth"] * 100}%
         Projections using Cash flow from Operations:
-                Cash Flow from Ops: {results["Cash Flow From Ops Calculations"]["Cash Flow from Ops"]:,}
+                Cash Flow from Ops: ${results["Cash Flow From Ops Calculations"]["Cash Flow from Ops"]:,}
                 Intrinsic Value: --> ${round(results["Cash Flow From Ops Calculations"]["Intrinsic Value"]["Intrinsic Value"], 2)} <--
         Projections using Net Income:
-                Net Income: {results["Net Income Calculations"]["Net Income"]:,}
+                Net Income: ${results["Net Income Calculations"]["Net Income"]:,}
                 Intrinsic Value: --> ${round(results["Net Income Calculations"]["Intrinsic Value"]["Intrinsic Value"], 2)} <--
     ''')

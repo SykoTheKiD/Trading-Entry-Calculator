@@ -1,6 +1,7 @@
 import statement_retrieval as stret
 from pprint import pprint
 import output as op
+import finviz
 
 NUM_YEARS_PROJECTED = 10
 
@@ -127,8 +128,7 @@ def main():
     if total_cash_and_short_term_investments == -1:
         exit
 
-    # INPUT
-    projected_growth_5Y = 9.86
+    projected_growth_5Y = finviz.get_eps(stock)
     projected_growth = projected_growth_5Y / 2
 
     projected_growth_5Y = projected_growth_5Y / 100
@@ -141,9 +141,8 @@ def main():
     projected_growths_net_income = get_projected_cash_flow(
         current_year_net_income, projected_growth_5Y, projected_growth)
 
-    # INPUT
-    no_outstanding_shares = 4.45 * 1e9
-    beta_value = 1.23
+    no_outstanding_shares = finviz.get_no_shares(stock)
+    beta_value = finviz.get_beta(stock)
 
     discounted_rates = calculate_discount_rates(
         get_discount_from_beta(beta_value))
@@ -160,6 +159,7 @@ def main():
         projected_growths_net_income, discounted_rates)
     
     results = {
+        "Company": finviz.get_company_name(stock),
         "Symbol": stock,
         "Total Debt": total_debt,
         "Total Cash on Hand": total_cash_and_short_term_investments,
