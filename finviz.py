@@ -1,3 +1,5 @@
+# TODO Format file
+
 from bs4 import BeautifulSoup
 import requests
 
@@ -11,13 +13,13 @@ def _get_finviz_stock_table(stock_symbol):
     page_elements = page.find_all('td', class_="snapshot-td2")
     return page_elements
 
-def get_eps(stock_symbol):
+def get_eps_growth_5Y(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
     eps_5Y = stock_table[32].get_text()
     try:
         return float(eps_5Y[:-1])
     except ValueError:
-        return -1
+        exit
 
 def get_no_shares(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -33,7 +35,7 @@ def get_no_shares(stock_symbol):
         no_shares_float = float(no_shares[:-1]) * factor
         return no_shares_float
     except ValueError:
-        return -1
+        exit
 
 def get_beta(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -41,7 +43,15 @@ def get_beta(stock_symbol):
     try:
         return float(beta)
     except ValueError:
-        return -1
+        exit
+
+def get_peg_ratio(stock_symbol):
+    stock_table = _get_finviz_stock_table(stock_symbol)
+    peg_ratio = stock_table[13].get_text()
+    try:
+        return float(peg_ratio)
+    except ValueError:
+        exit
 
 def get_company_name(stock_symbol):
     page = _get_finviz_stock_page(stock_symbol)

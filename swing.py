@@ -3,24 +3,20 @@
 
 ''' My personal swing trading entry formula
 '''
+from pricing import get_last_price_data, PricePayloadKeys
 from stock import Stock
 from trade import Trade
 
 import output as op
-
-import urllib.request
 import argparse
 import datetime
 import holidays
-import json
+
 import sys
-import ssl
 import os
 
-# it's a free API with no personal data attached, no need for env files
-API_KEY = os.getenv['SWING_API_KEY']
-CURRENT_CAPITAL = os.getenv['CURRENT_CAPITAL']
-COMMISSION_COST = os.getenv['COMMISSION_COST']
+CURRENT_CAPITAL = os.getenv('CURRENT_CAPITAL')
+COMMISSION_COST = os.getenv('COMMISSION_COST')
 
 ## TODO: Add break for large candles
 def get_price_padding(closing_price):
@@ -81,7 +77,7 @@ def get_last_trading_day():
         now = now - datetime.timedelta(days=1)
 
     time = now.time()
-    if(datetime.datetime.now() == now and time.hour <=9 and time.minute < 30):
+    if datetime.datetime.now() == now and time.hour <=9 and time.minute < 30:
         now = now - datetime.timedelta(days=1)
 
     return now
@@ -90,27 +86,23 @@ def grab_prices(symbol):
     '''
     Get the current price for a given symbol
     '''
-    #SSL bypass hardcoded, it's fine because it's a simple API call with no personal details
-    with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={API_KEY}", context=ssl.SSLContext()) as url:
-        data = json.loads(url.read().decode())
 
     try:
-        current_prices = data['Global Quote']
+        current_prices = get_last_price_data(symbol)
+        now = get_last_trading_day()
+        today = now.strftime("%Y-%m-%d")
+        last_trading_day = current_prices[PricePayloadKeys.last_trading_day.value]
+        if  last_trading_day != today:
+            print(last_trading_day)
+            raise ValueError('Data for {0} is not available'.format(today))
+
+        high = float(PricePayloadKeys.high.value)
+        low = float(PricePayloadKeys.low.value)
+        open_price = float(PricePayloadKeys.open_price.value)
+        close_price = float(PricePayloadKeys.price.value)
+        return Stock(high, low, close_price, open_price, symbol)
     except KeyError:
-        raise KeyError("JSON Data Error")
-    now = get_last_trading_day()
-    today = now.strftime("%Y-%m-%d")
-
-    if(current_prices['07. latest trading day'] != today):
-        print(current_prices['07. latest trading day'])
-        raise ValueError('Data for {0} is not available'.format(today))
-
-    high = float(current_prices['03. high'])
-    low = float(current_prices['04. low'])
-    open_price = float(current_prices['02. open'])
-    close_price = float(current_prices['05. price'])
-    return Stock(high, low, close_price, open_price, symbol)
-
+        print("JSON Response from AlphaVantage Corrupt")
 
 def summarize(trades):
     op.print_swing_report(trades)

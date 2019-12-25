@@ -8,6 +8,7 @@ CURRENT_CAPITAL = 7000 ## os.getenv['CURRENT_CAPITAL']
 def line_break(length=50):
     print('*' * length)
 
+# TODO: Add number formatting
 def _clean_number(number):
     return round(number, 2)
 
@@ -56,12 +57,12 @@ def print_swing_report(trades):
     if(num_trades > 5):
         msg += "**Warning: Total capital at risk exceeds 5%\n**"
     if total_capital_reqd > CURRENT_CAPITAL:
-        msg += f"***! Total capital required (${round(total_capital_reqd, 2)}) exceeds current capital (${CURRENT_CAPITAL}) !***"
+        msg += f"***! Total capital required (${_clean_number(total_capital_reqd)}) exceeds current capital (${CURRENT_CAPITAL}) !***"
 
     print(f'''
 Trade Summary
 ***************
-Total Capital Needed: ${round(total_capital_reqd, 2)}
+Total Capital Needed: ${_clean_number(total_capital_reqd)}
 Total Number of Trades: {num_trades}
 
 {msg}
@@ -95,8 +96,11 @@ def display_intrinsic_value(results):
         Projected Growth after 5Y: {results["Projected Growth"] * 100}%
         Projections using Cash flow from Operations:
                 Cash Flow from Ops: ${results["Cash Flow From Ops Calculations"]["Cash Flow from Ops"]:,}
-                Intrinsic Value: --> ${round(results["Cash Flow From Ops Calculations"]["Intrinsic Value"]["Intrinsic Value"], 2)} <--
+                Intrinsic Value: --> ${_clean_number(results["Cash Flow From Ops Calculations"]["Intrinsic Value"]["Intrinsic Value"])} <--
+                Delta: {_clean_number(results["Evaluation"]["Delta (Cash Flow)"])}
         Projections using Net Income:
                 Net Income: ${results["Net Income Calculations"]["Net Income"]:,}
-                Intrinsic Value: --> ${round(results["Net Income Calculations"]["Intrinsic Value"]["Intrinsic Value"], 2)} <--
+                Intrinsic Value: --> ${_clean_number(results["Net Income Calculations"]["Intrinsic Value"]["Intrinsic Value"])} <--
+                Delta: {_clean_number(results["Evaluation"]["Delta (Net Income)"])}
+        Current PEG Ratio: {results["Evaluation"]["PEG"]}
     ''')

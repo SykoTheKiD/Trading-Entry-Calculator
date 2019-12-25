@@ -1,5 +1,3 @@
-from math import log
-
 import intrinsic_value_calculator as ivc
 import unittest
 
