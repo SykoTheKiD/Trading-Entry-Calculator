@@ -26,16 +26,16 @@ def get_last_price_data(stock_symbol):
     try:
         data = data["Global Quote"]
         payload = {
-            "symbol": data["01. symbol"],
-            "open": data["02. open"],
-            "high": data["03. high"],
-            "low": data["04. low"],
-            "price": data["05. price"],
-            "volume": data["06. volume"],
-            "last trading day": data["07. latest trading day"],
-            "previous close": data["08. previous close"],
-            "change": data["09. change"],
-            "change percent": data["10. change percent"]
+            PricePayloadKeys.symbol.value: data["01. symbol"],
+            PricePayloadKeys.open_price.value: data["02. open"],
+            PricePayloadKeys.high.value: data["03. high"],
+            PricePayloadKeys.low.value: data["04. low"],
+            PricePayloadKeys.price.value: data["05. price"],
+            PricePayloadKeys.volume.value: data["06. volume"],
+            PricePayloadKeys.last_trading_day.value: data["07. latest trading day"],
+            PricePayloadKeys.previous_close.value: data["08. previous close"],
+            PricePayloadKeys.change.value: data["09. change"],
+            PricePayloadKeys.change_percent.value: data["10. change percent"]
         }
         return payload
     except KeyError:
