@@ -1,8 +1,17 @@
+from enum import Enum
 import urllib.request
 import operator
 import json
 import ssl
 
+class StatementKeys(Enum):
+    financials = "financials"
+    total_current_liabilities = "Total current liabilities"
+    total_current_assets = "Total current assets"
+    total_liabilities = "Total liabilities"
+    total_shareholder_equity = "Total shareholders equity"
+    operating_cash_flow = "Operating Cash Flow"
+    financial_statements_list = "financialStatementList"
 
 class StatementAttribute:
     def __init__(self, attribute_name, attribute_document, operation):

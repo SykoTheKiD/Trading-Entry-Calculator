@@ -6,41 +6,41 @@ import operator
 import json
 
 def calculate_current_ratio(balance_sheet):
-    financial_statements = balance_sheet['financials']
+    financial_statements = balance_sheet[stret.StatementKeys.financials.value]
     float_val_liabilities = float(
-        financial_statements[0]['Total current liabilities'])
+        financial_statements[0][stret.StatementKeys.total_current_liabilities.value])
     float_val_assets = float(
-        financial_statements[0]['Total current assets'])
+        financial_statements[0][stret.StatementKeys.total_current_assets.value])
     return float_val_assets/float_val_liabilities
 
 def calculate_debt_to_equity_ratio(balance_sheet):
-    financial_statements = balance_sheet['financials']
+    financial_statements = balance_sheet[stret.StatementKeys.financials.value]
     de_ratios = []
     for i in range(len(balance_sheet)):
         float_val_liabilities = float(
-            financial_statements[i]['Total liabilities'])
+            financial_statements[i][stret.StatementKeys.total_liabilities.value])
         float_val_equity = float(
-            financial_statements[i]['Total shareholders equity'])
+            financial_statements[i][stret.StatementKeys.total_shareholder_equity])
     return float_val_liabilities/float_val_equity
 
-def cash_flow(cash_flow_statements):
-    financial_statements = cash_flow_statements['financials']
+def is_cash_flow_increasing(cash_flow_statements):
+    financial_statements = cash_flow_statements[stret.StatementKeys.financials.value]
     cash_flow_from_operations = []
     for i in range(len(financial_statements)):
         try:
             float_cash_flow_from_ops = float(
-                financial_statements[i]['Operating Cash Flow'])
+                financial_statements[i][stret.StatementKeys.operating_cash_flow.value])
             cash_flow_from_operations.append(float_cash_flow_from_ops)
         except ValueError:
             print("ERROR CASH FLOW")
     return fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_operations)
 
-def eps(cash_flow_statements):
+def is_eps_increasing(cash_flow_statements):
     pass
 
 def score_statement_attribute(statement, statement_attribute):
     float_vals = []
-    financial_statements = statement['financials']
+    financial_statements = statement[stret.StatementKeys.financials.value]
     try:
         for i in range(len(financial_statements)):
             float_val = float(financial_statements[i][statement_attribute.attribute_name])
@@ -52,7 +52,7 @@ def score_statement_attribute(statement, statement_attribute):
 
 def multi_stock_value_score(statements):
     results = []
-    for statement in statements['financialStatementList']:
+    for statement in statements[stret.StatementKeys.financial_statements_list.value]:
         results.append(screen_income_statement(statement))
     return results
 
