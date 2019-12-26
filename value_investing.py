@@ -1,3 +1,5 @@
+import statement_retrieval as stret
+from fuzzy import fuzzy_increase
 import urllib.request
 import output as op
 import operator
@@ -31,7 +33,7 @@ def cash_flow(cash_flow_statements):
             cash_flow_from_operations.append(float_cash_flow_from_ops)
         except ValueError:
             print("ERROR CASH FLOW")
-    return fuzzy_increase(CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_operations)
+    return fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_operations)
 
 def eps(cash_flow_statements):
     pass
@@ -56,15 +58,15 @@ def multi_stock_value_score(statements):
 
 def screen_income_statement(statement):
     results = {
-        REVENUE_ATTR: op.clean_boolean(score_statement_attribute(statement, REVENUE_ATTR)),
-        GROSS_PROFIT_ATTR: op.clean_boolean(score_statement_attribute(
-            statement, GROSS_PROFIT_ATTR)),
-        GROSS_MARGIN_ATTR: op.clean_boolean(score_statement_attribute(
-            statement, GROSS_MARGIN_ATTR)),
-        NET_PROFIT_MARGIN_ATTR: op.clean_boolean(score_statement_attribute(
-            statement, NET_PROFIT_MARGIN_ATTR)),
-        EPS_DILUTED_ATTR: op.clean_boolean(score_statement_attribute(
-            statement, EPS_DILUTED_ATTR))
+        stret.REVENUE_ATTR: op.clean_boolean(score_statement_attribute(statement, stret.REVENUE_ATTR)),
+        stret.GROSS_PROFIT_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, stret.GROSS_PROFIT_ATTR)),
+        stret.GROSS_MARGIN_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, stret.GROSS_MARGIN_ATTR)),
+        stret.NET_PROFIT_MARGIN_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, stret.NET_PROFIT_MARGIN_ATTR)),
+        stret.EPS_DILUTED_ATTR: op.clean_boolean(score_statement_attribute(
+            statement, stret.EPS_DILUTED_ATTR))
     }
     return results
 
@@ -73,10 +75,12 @@ def screen_income_statement(statement):
 def main(stock_list):
     if len(stock_list) == 0: return
     stocks = ','.join(symbol.upper() for symbol in stock_list)
-    income_statements = _get_financial_statement(INCOME_STATEMENT, stocks)
-    balance_sheets = _get_financial_statement(BALANCE_SHEET, stocks, quarterly=True)
-    cash_flow_statements = _get_financial_statement(
-        CASH_FLOW_STATEMENT, stocks)
+    income_statements = stret.get_financial_statement(
+        stret.INCOME_STATEMENT, stocks)
+    balance_sheets = stret.get_financial_statement(
+        stret.BALANCE_SHEET, stocks, quarterly=True)
+    cash_flow_statements = stret.get_financial_statement(
+        stret.CASH_FLOW_STATEMENT, stocks)
     if len(stock_list) > 1:
         print(multi_stock_value_score(income_statements))
     else:

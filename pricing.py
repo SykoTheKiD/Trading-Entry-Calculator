@@ -18,13 +18,14 @@ class PricePayloadKeys(Enum):
     change = "change"
     change_percent = "change_percent"
 
+
 def get_last_price_data(stock_symbol):
     #SSL bypass hardcoded, it's fine because it's a simple API call with no personal details
     with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock_symbol}&apikey={API_KEY}", context=ssl.SSLContext()) as url:
         data = json.loads(url.read().decode())
     try:
         data = data["Global Quote"]
-        payload  = {
+        payload = {
             "symbol": data["01. symbol"],
             "open": data["02. open"],
             "high": data["03. high"],
@@ -40,7 +41,3 @@ def get_last_price_data(stock_symbol):
     except KeyError:
         raise KeyError("JSON Response Corrupt")
 
-if __name__ == "__main__":
-    from dotenv import load_dotenv
-    load_dotenv()
-    print(get_last_price_data("AAPL"))

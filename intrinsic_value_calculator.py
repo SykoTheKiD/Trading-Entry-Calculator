@@ -1,9 +1,32 @@
 from pricing import get_last_price_data, PricePayloadKeys
 import statement_retrieval as stret
+from fuzzy import fuzzy_increase
+from enum import Enum
 import output as op
 import finviz
 
 NUM_YEARS_PROJECTED = 10
+
+class IVCKeys(Enum):
+    company_name = "Company"
+    symbol = "Symbol"
+    total_debt = "Total Debt"
+    total_cash = "Total Cash on Hand"
+    eps_5Y = "EPS 5Y"
+    projected_growth = "Projected Growth"
+    no_shares = "No. of Shares Outstanding"
+    cash_from_ops_calcs = "Cash Flow From Ops Calculations"
+    cash_from_ops = "Cash Flow from Ops"
+    pv_of_cash = "Present Value of 10 yr"
+    discount_rates = "Discount Rates"
+    projected_growth_discounted = "Projected Growth (Discounted)"
+    intrinsic_value = "Intrinsic Value"
+    net_income_calcs = "Net Income Calculations"
+    net_income = "Net Income"
+    evaluation = "Evaluation"
+    peg = "PEG"
+    market_price = "Current Market Price"
+    market_delta = "Delta"
 
 def get_discount_from_beta(discount_rate):
     rate = round(discount_rate, 1)
@@ -90,7 +113,6 @@ def calculate_discounted_values(projected_cash_flows, discount_rates):
         discounted_values.append(projected_cash_flows[i] * discount_rates[i])
     return discounted_values
 
-
 def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total_debt, total_cash_and_short_term_investments):
     intrinsic_value_prior = projected_growth_sum / no_outstanding_shares
     debt_per_share = total_debt / no_outstanding_shares
@@ -110,7 +132,6 @@ def main(stock_symbol):
     print("Fetching Yearly Cash Flow Statements...")
     cash_flow_statements_yrly = stret.get_financial_statement(
         stret.CASH_FLOW_STATEMENT, stock_symbol)
-
 
     # cash flow from ops
     # use net income if cash flow from ops not increasing
@@ -147,7 +168,7 @@ def main(stock_symbol):
     print("Calculating Projected Cash Flows...")
     projected_growths_cash_flow = get_projected_cash_flow(
         current_year_cash_flow, projected_growth_5Y, projected_growth_after_5Y)
-    print("Calculating Projected Cash Flows...")
+    print("Calculating Projected Net Incomes...")
     projected_growths_net_income = get_projected_cash_flow(
         current_year_net_income, projected_growth_5Y, projected_growth_after_5Y)
 
@@ -180,33 +201,34 @@ def main(stock_symbol):
     intrinsic_value_net_income_final = intrisic_value_net_income["Intrinsic Value"]
 
     results = {
-        "Company": finviz.get_company_name(stock_symbol),
-        "Symbol": stock_symbol,
-        "Total Debt": total_debt,
-        "Total Cash on Hand": total_cash_and_short_term_investments,
-        "EPS 5Y": projected_growth_5Y,
-        "Projected Growth": projected_growth_after_5Y,
-        "No. of Shares Outstanding": no_outstanding_shares,
-        "Cash Flow From Ops Calculations":{
-            "Cash Flow from Ops": current_year_cash_flow,
-            "Present Value of 10 yr Cash Flows (Cash flow from Ops)": projected_growths_cash_flow,
-            "Discount Rates": discounted_rates,
-            "Projected Growth (Discounted)": projected_cash_flow_discounted,
-            "Intrinsic Value": intrisic_value_cash_flow
+        IVCKeys.company_name.value: finviz.get_company_name(stock_symbol),
+        IVCKeys.symbol.value: stock_symbol,
+        IVCKeys.total_debt.value: total_debt,
+        IVCKeys.total_cash.value: total_cash_and_short_term_investments,
+        IVCKeys.eps_5Y.value: projected_growth_5Y,
+        IVCKeys.projected_growth.value: projected_growth_after_5Y,
+        IVCKeys.no_shares.value: no_outstanding_shares,
+        IVCKeys.cash_from_ops_calcs.value: {
+            IVCKeys.cash_from_ops.value: current_year_cash_flow,
+            IVCKeys.pv_of_cash.value: projected_growths_cash_flow,
+            IVCKeys.discount_rates.value: discounted_rates,
+            IVCKeys.pv_of_cash.value: projected_cash_flow_discounted,
+            IVCKeys.intrinsic_value.value: intrisic_value_cash_flow
 
         },
-        "Net Income Calculations":{
-            "Net Income": current_year_net_income,
-            "Present Value of 10 yr Cash Flows (Net Income)": projected_growths_net_income,
-            "Discount Rates": discounted_rates,
-            "Projected Growth (Discounted)": projected_net_income_discounted,
-            "Intrinsic Value": intrisic_value_net_income
+        IVCKeys.net_income_calcs.value: {
+            IVCKeys.net_income.value: current_year_net_income,
+            IVCKeys.pv_of_cash.value: projected_growths_net_income,
+            IVCKeys.discount_rates.value: discounted_rates,
+            IVCKeys.projected_growth_discounted.value: projected_net_income_discounted,
+            IVCKeys.intrinsic_value.value: intrisic_value_net_income
         },
-        "Evaluation":{
-            "PEG": finviz.get_peg_ratio(stock_symbol),
-            "Current Market Price": market_price,
-            "Delta (Cash Flow)": market_price - intrinsic_value_cash_flow_final,
-            "Delta (Net Income)": market_price - intrinsic_value_net_income_final
+        IVCKeys.evaluation.value: {
+            IVCKeys.peg.value: finviz.get_peg_ratio(stock_symbol),
+            IVCKeys.market_price.value: market_price,
+            IVCKeys.market_delta.value: market_price - intrinsic_value_cash_flow_final,
+            IVCKeys.market_delta.value: market_price - intrinsic_value_net_income_final,
+            IVCKeys.cash_from_ops.value: fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops[:5][::-1]), IVCKeys.net_income.value: fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes[:5][::-1])
         }
     }
     op.display_intrinsic_value(results)
