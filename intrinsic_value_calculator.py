@@ -27,6 +27,9 @@ class IVCKeys(Enum):
     peg = "PEG"
     market_price = "Current Market Price"
     market_delta = "Delta"
+    debt_per_share = "Debt Per Share"
+    intrinsic_value_prior = "Intrinsic Value Prior"
+    cash_per_share = "Cash Per Share"
 
 def get_discount_from_beta(discount_rate):
     rate = round(discount_rate, 1)
@@ -48,42 +51,42 @@ def get_discount_from_beta(discount_rate):
         return 0.09
 
 def get_cash_flows(cash_flow_statements):
-    statements = cash_flow_statements["financials"]
+    statements = cash_flow_statements[stret.StatementKeys.financials.value]
     cash_flow_values = []
     for statement in statements:
         try:
-            cash_flow = float(statement["Operating Cash Flow"])
+            cash_flow = float(statement[stret.StatementKeys.operating_cash_flow.value])
             cash_flow_values.append(cash_flow)
         except ValueError:
-            print(statement["Operating Cash Flow"])
+            print(statement[stret.StatementKeys.operating_cash_flow.value])
     return cash_flow_values
 
 def get_net_incomes(income_statements):
-    statements = income_statements["financials"]
-    cash_flow_values = []
+    statements = income_statements[stret.StatementKeys.financials.value]
+    net_income_values = []
     for statement in statements:
         try:
-            cash_flow = float(statement["Net Income"])
-            cash_flow_values.append(cash_flow)
+            net_incomes = float(statement[stret.StatementKeys.net_income.value])
+            net_income_values.append(net_incomes)
         except ValueError:
-            print(statement["Net Income"])
-    return cash_flow_values
+            print(statement[stret.StatementKeys.net_income.value])
+    return net_income_values
 
 
 def get_total_debt(qrtrly_balance_sheets):
-    latest_statement = qrtrly_balance_sheets["financials"][0]
+    latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
     try:
-        short_term_debt = float(latest_statement["Short-term debt"])
-        long_term_debt = float(latest_statement["Long-term debt"])
+        short_term_debt = float(latest_statement[stret.StatementKeys.short_term_debt.value])
+        long_term_debt = float(latest_statement[stret.StatementKeys.long_term_debt.value])
         return short_term_debt + long_term_debt
     except ValueError:
         return -1
 
 
 def get_total_cash_on_hand(qrtrly_balance_sheets):
-    latest_statement = qrtrly_balance_sheets["financials"][0]
+    latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
     try:
-        return float(latest_statement["Cash and short-term investments"])
+        return float(latest_statement[stret.StatementKeys.cash_and_short_term_investments.value])
     except ValueError:
         return -1
 
@@ -118,10 +121,10 @@ def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total
     debt_per_share = total_debt / no_outstanding_shares
     cash_per_share = total_cash_and_short_term_investments/ no_outstanding_shares
     intrinsic_value = intrinsic_value_prior - debt_per_share + cash_per_share
-    return {"Intrinsic Value Prior": intrinsic_value_prior,
-            "Debt Per Share": debt_per_share,
-            "Cash Per Share": cash_per_share,
-            "Intrinsic Value": intrinsic_value}
+    return {IVCKeys.intrinsic_value_prior.value: intrinsic_value_prior,
+            IVCKeys.debt_per_share.value: debt_per_share,
+            IVCKeys.cash_per_share.value: cash_per_share,
+            IVCKeys.intrinsic_value.value: intrinsic_value}
 
 def main(stock_symbol):
     stock_symbol = stock_symbol.upper()
@@ -197,8 +200,8 @@ def main(stock_symbol):
         projected_net_income_discounted), no_outstanding_shares, total_debt, total_cash_and_short_term_investments)
 
     market_price = float(get_last_price_data(stock_symbol)[PricePayloadKeys.price.value])
-    intrinsic_value_cash_flow_final = intrisic_value_cash_flow["Intrinsic Value"]
-    intrinsic_value_net_income_final = intrisic_value_net_income["Intrinsic Value"]
+    intrinsic_value_cash_flow_final = intrisic_value_cash_flow[IVCKeys.intrinsic_value.value]
+    intrinsic_value_net_income_final = intrisic_value_net_income[IVCKeys.intrinsic_value.value]
 
     results = {
         IVCKeys.company_name.value: finviz.get_company_name(stock_symbol),
