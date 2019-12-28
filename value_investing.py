@@ -1,11 +1,49 @@
 import statement_retrieval as stret
-from finviz import get_peg_ratio
+from finviz import get_peg_ratio, get_company_name
 from fuzzy import fuzzy_increase
-from operator import truediv
+from operator import truediv, gt, le
+from enum import Enum
 import urllib.request
 import output as op
 import operator
 import json
+
+class FlowThreshold:
+    def __init__(self, operation, threshold):
+        self.operation = operation
+        self.threshold = threshold
+
+
+DEBT_SERVICING_RATIO_THRESHOLD = FlowThreshold(le, 0.3)
+CASH_FLOW_FROM_INVESTING_THRESHOLD = FlowThreshold(gt, 0)
+CASH_FLOW_FROM_FINANCING_THRESHOLD = FlowThreshold(gt, 0)
+class VIKeys(Enum):
+    company_name = "Company Name"
+    symbol = "Symbol"
+    cash_flow_from_investing = "Cash Flow From Investing"
+    cash_flow_from_financing = "Cash Flow From Financing"
+    free_cash_flow = "Free Cash Flows"
+    free_cash_flow_trend = "Free Cash Flow Trend"
+    debt_to_equity_ratio = "Debt to Equity Ratio"
+    debt_to_equity_ratio_trend = "Debt to Equity Ratio Trend"
+    debt_servicing_ratio_free_cash_flow = "Debt Servicing Ratio (Free Cash Flows)"
+    debt_servicing_ratio_free_cash_flow_decision = "Debt Servicing Ratio (FCF)Decision"
+    debt_servicing_ratio_net_incomes = "Debt Servicing Ratio (Net Incomes)"
+    debt_servicing_ratio_net_incomes_decision = "Debt Servicing Ratio (Net Income) Decision"
+    cash_flow_from_ops = "Cash Flow From Operations"
+    cash_flow_from_ops_trend = "Cash Flow From Operations Trend"
+    eps = "EPS"
+    eps_trend = "EPS Trend"
+    net_incomes = "Net Income"
+    net_incomes_trend = "Net Income Trend"
+    revenues = "Revenue"
+    revenues_trend = "Revenue Trend"
+    gross_margin = "Gross Margin"
+    gross_margin_trend = "Gross Margin Trend"
+    net_profit_margin = "Net Profit Margin"
+    net_profit_margin_trend = "Net Profit Margin Trend"
+    peg_ratio = "PEG Ratio"
+    peg_ratio_check = "PEG Ratio Check"
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
@@ -15,41 +53,14 @@ def calculate_ttm_ratio(lst1, lst2):
     ttm2 = lst2[-1]
     return ttm1/ttm2
 
-def calculate_debt_equity_ratios(total_liabilities, total_shareholder_equity):
-    return calculate_ratios(total_liabilities, total_shareholder_equity)
-
-
-def calculate_current_ratio(total_current_assets, total_current_liabilities):
-    return calculate_ttm_ratio(total_current_assets, total_current_liabilities)
-
-
-def calculate_debt_servicing_ratio(net_interest_expenses, cash_source):
-    # net_income / cash_flow_from_ops ideally < 30%
-    return calculate_ttm_ratio(net_interest_expenses, cash_source)
-
-def calculate_fcf_revenue(free_cash_flows, revenues):
-    return calculate_ratios(free_cash_flows, revenues)
-
-def calculate_return_on_equity(cash_source, total_shareholder_equity):
-    # roe = net incomes or fcf / (assets - liabilities) or total shareholders equity
-    return calculate_ratios(cash_source, total_shareholder_equity)
-    # consistently > 12% good
-    # consistently > 50% amazing
-
-def _calculate_flow_graph(flows, positive_bound):
+def calculate_flow_graph(flows, flow_threshold):
     ret = []
     for i in range(len(flows)):
-        if i > positive_bound:
+        if flow_threshold.operation(i, flow_threshold.threshold):
             ret.append('+')
         else:
             ret.append('-')
     return ret
-
-def cash_flow_financing_list(cash_froms):
-    return _calculate_flow_graph(cash_froms, 0)
-
-def is_debt_servicing_ratio_good(ds_ratios):
-    return _calculate_flow_graph(ds_ratios, 0.3)
 
 def extract_values_from_statment(statements, statement_attribute):
     float_vals = []
@@ -61,16 +72,14 @@ def extract_values_from_statment(statements, statement_attribute):
         print("ERROR " + statements[i][statement_attribute.attribute_name])
     return float_vals
 
-def main(stock_list):
-    if len(stock_list) == 0: return
-    stocks = ','.join(symbol.upper() for symbol in stock_list)
-    
+def main(stock):
+    stock = stock.upper()
     income_statements_yrly = stret.get_financial_statement(
-        stret.INCOME_STATEMENT, stocks)[stret.StatementKeys.financials.value][::-1][5:]
+        stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][5:]
     balance_sheets_qrtrly = stret.get_financial_statement(
-        stret.BALANCE_SHEET, stocks, quarterly=True)[stret.StatementKeys.financials.value][::-1][5:]
+        stret.BALANCE_SHEET, stock, quarterly=True)[stret.StatementKeys.financials.value][::-1][5:]
     cash_flow_statements_yrly = stret.get_financial_statement(
-        stret.CASH_FLOW_STATEMENT, stocks)[stret.StatementKeys.financials.value][::-1][5:]
+        stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][5:]
     
     net_incomes = extract_values_from_statment(
         income_statements_yrly, stret.NET_INCOME_ATTR)
@@ -99,28 +108,64 @@ def main(stock_list):
     gross_margin = extract_values_from_statment(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
     net_profit_margins = extract_values_from_statment(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
 
-    current_ratio = calculate_current_ratio(total_current_assets, total_current_liabilities)
-    de_ratios = calculate_debt_equity_ratios(total_liabilities, total_shareholders_equity)
-    debt_servicing_ratios  = calculate_debt_servicing_ratio(interest_expense, cash_flow_from_ops)
-    fcf_revenues = calculate_fcf_revenue(free_cash_flows, revenues)
-    return_on_equity_fcf = calculate_return_on_equity(free_cash_flows, total_shareholders_equity)
-    return_on_equity_net_income = calculate_return_on_equity(
+    current_ratio = calculate_ttm_ratio(
+        total_current_assets, total_current_liabilities)
+    de_ratios = calculate_ratios(total_liabilities, total_shareholders_equity)
+    debt_servicing_ratios_fcf = calculate_ttm_ratio(
+        interest_expense, free_cash_flows)
+    debt_servicing_ratios_net_income = calculate_ttm_ratio(
+        interest_expense, net_incomes)
+    fcf_revenues = calculate_ratios(free_cash_flows, revenues)
+    return_on_equity_fcf = calculate_ratios(
+        free_cash_flows, total_shareholders_equity)
+    return_on_equity_net_income = calculate_ratios(
         net_incomes, total_shareholders_equity)
+    peg_ratio = get_peg_ratio(stock)
 
-    print(cash_flow_financing_list(cash_from_investments))
-    print(cash_flow_financing_list(cash_from_financing))
-    print(fuzzy_increase(stret.FREE_CASH_FLOWS_ATTR, free_cash_flows))
-    print(fuzzy_increase(stret.DEBT_TO_EQUITY_RATIO_ATTR, de_ratios))
-    print(is_debt_servicing_ratio_good([debt_servicing_ratios]))
-    print(fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR,cash_flow_from_ops))
-    print(fuzzy_increase(stret.EPS_DILUTED_ATTR, eps_diluted))
-    print(fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes))
-    print(fuzzy_increase(stret.REVENUE_ATTR, revenues))
-    print(fuzzy_increase(stret.GROSS_MARGIN_ATTR, gross_margin))
-    print(fuzzy_increase(stret.NET_PROFIT_MARGIN_ATTR, net_profit_margins))
+    results = {
+        VIKeys.company_name.value: get_company_name(stock),
+        VIKeys.symbol.value: stock,
+        VIKeys.cash_flow_from_financing.value: calculate_flow_graph(
+            cash_from_investments, CASH_FLOW_FROM_FINANCING_THRESHOLD),
+        VIKeys.cash_flow_from_investing.value: calculate_flow_graph(
+            cash_from_financing, CASH_FLOW_FROM_INVESTING_THRESHOLD),
+        VIKeys.free_cash_flow.value: free_cash_flows,
+        VIKeys.free_cash_flow_trend.value: fuzzy_increase(
+            stret.FREE_CASH_FLOWS_ATTR, free_cash_flows),
+        VIKeys.debt_to_equity_ratio.value: de_ratios,
+        VIKeys.debt_to_equity_ratio_trend.value: fuzzy_increase(
+            stret.DEBT_TO_EQUITY_RATIO_ATTR, de_ratios),
+        VIKeys.debt_to_equity_ratio_trend.value: debt_servicing_ratios_fcf,
+        VIKeys.debt_servicing_ratio_free_cash_flow_decision.value: calculate_flow_graph(
+            [debt_servicing_ratios_fcf], DEBT_SERVICING_RATIO_THRESHOLD),
+        VIKeys.debt_servicing_ratio_net_incomes.value: debt_servicing_ratios_net_income,
+        VIKeys.debt_servicing_ratio_net_incomes_decision.value: calculate_flow_graph(
+            [debt_servicing_ratios_net_income], DEBT_SERVICING_RATIO_THRESHOLD),
+        VIKeys.cash_flow_from_ops.value: cash_flow_from_ops,
+        VIKeys.cash_flow_from_ops_trend.value: fuzzy_increase(
+            stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops),
+        VIKeys.eps.value: eps_diluted,
+        VIKeys.eps_trend.value: fuzzy_increase(
+            stret.EPS_DILUTED_ATTR, eps_diluted),
+        VIKeys.net_incomes.value: net_incomes,
+        VIKeys.net_incomes_trend.value: fuzzy_increase(
+            stret.NET_INCOME_ATTR, net_incomes),
+        VIKeys.revenues.value: revenues,
+        VIKeys.revenues_trend.value: fuzzy_increase(
+            stret.REVENUE_ATTR, revenues),
+        VIKeys.gross_margin.value: gross_margin,
+        VIKeys.gross_margin_trend.value: fuzzy_increase(
+            stret.GROSS_MARGIN_ATTR, gross_margin),
+        VIKeys.net_profit_margin.value: net_profit_margins,
+        VIKeys.net_profit_margin_trend.value: fuzzy_increase(
+            stret.NET_PROFIT_MARGIN_ATTR, net_profit_margins),
+        VIKeys.peg_ratio.value: peg_ratio,
+        VIKeys.peg_ratio_check.value: True if (peg_ratio <= 1.6) else False
+    }
+    op.print_value_investing_report(results)
 
 if __name__ == "__main__":
-    main(["AAPL"])
+    main("AAPL")
 
 # income statement
 # TODO gross profit higher than industry
