@@ -44,6 +44,7 @@ class VIKeys(Enum):
     net_profit_margin_trend = "Net Profit Margin Trend"
     peg_ratio = "PEG Ratio"
     peg_ratio_check = "PEG Ratio Check"
+    years = "Years"
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
@@ -74,52 +75,84 @@ def extract_values_from_statment(statements, statement_attribute):
 
 def main(stock):
     stock = stock.upper()
+
+    print("Fetching Yearly Income Statements...")
     income_statements_yrly = stret.get_financial_statement(
-        stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][5:]
+        stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
+    print("Fetching Quarterly Balance Sheets...")
     balance_sheets_qrtrly = stret.get_financial_statement(
-        stret.BALANCE_SHEET, stock, quarterly=True)[stret.StatementKeys.financials.value][::-1][5:]
+        stret.BALANCE_SHEET, stock, quarterly=True)[stret.StatementKeys.financials.value][::-1][-5:]
+    print("Fetching Yearly Cash Flow Statements...")
     cash_flow_statements_yrly = stret.get_financial_statement(
-        stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][5:]
-    
+        stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
+
+    print("Parsing Years...")
+    years = []
+    for i in range(len(income_statements_yrly)):
+        years.append(income_statements_yrly[i]['date'])
+    years = [year.split('-')[0] for year in years]
+
+    print("Parsing Net Incomes...")
     net_incomes = extract_values_from_statment(
         income_statements_yrly, stret.NET_INCOME_ATTR)
+    print("Parsing Revenues...")
     revenues = extract_values_from_statment(
         income_statements_yrly, stret.REVENUE_ATTR)
+    print("Parsing EPS Diluted...")
     eps_diluted = extract_values_from_statment(
         income_statements_yrly, stret.EPS_DILUTED_ATTR)
+    print("Parsing Cash Flow from Operations...")
     cash_flow_from_ops = extract_values_from_statment(
         cash_flow_statements_yrly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
+    print("Parsing Total Current Assets...")
     total_current_assets = extract_values_from_statment(
         balance_sheets_qrtrly, stret.TOTAL_CURRENT_ASSETS_ATTR)
+    print("Parsing Total Liabilities...")
     total_liabilities = extract_values_from_statment(
         balance_sheets_qrtrly, stret.TOTAL_LIABILITIES_ATTR)
+    print("Parsing Total Current Liabilities...")
     total_current_liabilities = extract_values_from_statment(
         balance_sheets_qrtrly, stret.TOTAL_CURRENT_LIABILITIES_ATTR)
+    print("Parsing Total Shareholder Equity...")
     total_shareholders_equity = extract_values_from_statment(
         balance_sheets_qrtrly, stret.TOTAL_SHAREHOLDER_EQUITY_ATTR)
+    print("Parsing Free Cash Flows...")
     free_cash_flows = extract_values_from_statment(
         cash_flow_statements_yrly, stret.FREE_CASH_FLOWS_ATTR)
+    print("Parsing Cash From Financing...")
     cash_from_financing = extract_values_from_statment(
         cash_flow_statements_yrly, stret.CASH_FROM_FINANCING_ATTR)
+    print("Parsing Cash From Investments...")
     cash_from_investments = extract_values_from_statment(
         cash_flow_statements_yrly, stret.CASH_FROM_INVESTMENTS_ATTR)
+    print("Parsing Interest Expense...")
     interest_expense = extract_values_from_statment(
         income_statements_yrly, stret.INTEREST_EXPENSE_ATTR)
+    print("Parsing Gross Margin...")
     gross_margin = extract_values_from_statment(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
+    print("Parsing Net Margin...")
     net_profit_margins = extract_values_from_statment(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
 
+    print("Calculating Current Ratio...")
     current_ratio = calculate_ttm_ratio(
         total_current_assets, total_current_liabilities)
+    print("Calculating Debt to Equity Ratio...")
     de_ratios = calculate_ratios(total_liabilities, total_shareholders_equity)
+    print("Calculating Debt Servicing Ratio (FCF)...")
     debt_servicing_ratios_fcf = calculate_ttm_ratio(
         interest_expense, free_cash_flows)
+    print("Calculating Debt Servicing Ratio (Net Income)...")
     debt_servicing_ratios_net_income = calculate_ttm_ratio(
         interest_expense, net_incomes)
+    print("Calculating Free Cash Flow (Revenues)...")
     fcf_revenues = calculate_ratios(free_cash_flows, revenues)
+    print("Calculating Return on Equity (FCF)...")
     return_on_equity_fcf = calculate_ratios(
         free_cash_flows, total_shareholders_equity)
+    print("Calculating Return on Equity (Net Income)...")
     return_on_equity_net_income = calculate_ratios(
         net_incomes, total_shareholders_equity)
+    print("Fetching PEG Ratio...")
     peg_ratio = get_peg_ratio(stock)
 
     results = {
@@ -160,7 +193,8 @@ def main(stock):
         VIKeys.net_profit_margin_trend.value: fuzzy_increase(
             stret.NET_PROFIT_MARGIN_ATTR, net_profit_margins),
         VIKeys.peg_ratio.value: peg_ratio,
-        VIKeys.peg_ratio_check.value: True if (peg_ratio <= 1.6) else False
+        VIKeys.peg_ratio_check.value: True if (peg_ratio <= 1.6) else False,
+        VIKeys.years.value: years
     }
     op.print_value_investing_report(results)
 
