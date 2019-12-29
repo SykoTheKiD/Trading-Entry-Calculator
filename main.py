@@ -1,16 +1,19 @@
+import intrinsic_value_calculator
 from dotenv import load_dotenv
-
+import value_investing
 import swing
-import value
 
 def main():
-    trading_methods = {1: swing.main, 2: value.main}
     while True:
-        trade_type = input("What type of trading will you be doing\n1.Swing Trading\n2.Value Investing")
-        stocks = input("Enter each stock symbol separated by a space ")
+        trade_type = input("What type of trading will you be doing\n\t1.Swing Trading\n\t2.Value Investing\n")
+        stocks = input("Enter each stock symbol separated by a space:\n")
         stock_list = stocks.split(" ")
-        if trade_type in trading_methods:
-            trading_methods[trade_type](stock_list)
+        if trade_type == "1":
+            swing.main(stock_list)
+        elif trade_type == "2":
+            for i in stock_list:
+                value_investing.main(i)
+                intrinsic_value_calculator.main(i)
         else:
             exit()
 

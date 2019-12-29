@@ -1,10 +1,8 @@
 # TODO Format file
-from intrinsic_value_calculator import IVCKeys
-from value_investing import VIKeys
 import sys
 import os
 
-CURRENT_CAPITAL = 7000 ## os.getenv['CURRENT_CAPITAL']
+CURRENT_CAPITAL = os.getenv('CURRENT_CAPITAL')
 
 def line_break(length=50):
     print('*' * length)
@@ -21,6 +19,10 @@ def clean_list(lst, years):
     if len(lst) >= 5 and len(years) >= 5:
         ret =f'''{years[0]} -> {lst[0]}, {years[1]} -> {lst[1]}, {years[2]} -> {lst[2]}, {years[3]} -> {lst[3]}, {years[4]} -> {lst[4]}'''
         return ret
+
+def loading_message(msg):
+    if os.getenv("VERBOSITY") == 1:
+        print(msg, "...")
 
 def print_swing_report(trades):
     '''
@@ -92,7 +94,7 @@ def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r,delta_2
     ''')
 
 
-def print_intrinsic_value(results):
+def print_intrinsic_value(results, IVCKeys):
     print(f'''
         Company: {results[IVCKeys.company_name.value]}
         Symbol: {results[IVCKeys.symbol.value]}
@@ -114,7 +116,7 @@ def print_intrinsic_value(results):
     ''')
 
 
-def print_value_investing_report(results):
+def print_value_investing_report(results, VIKeys):
     print(f''' 
         -- Value Investing Report (Details Cover (Last 5Y)) --
         Company: {results[VIKeys.company_name.value]}
@@ -140,5 +142,5 @@ def print_value_investing_report(results):
         Net Profit Margin: {clean_list([*map(_clean_number, results[VIKeys.net_profit_margin.value])], results[VIKeys.years.value])}
         Net Profit Margin Trend: {clean_boolean(results[VIKeys.net_profit_margin_trend.value])}\n
         PEG Ratio: {results[VIKeys.peg_ratio.value]}
-        PEG Ratio Check: {clean_boolean(results[VIKeys.peg_ratio_check.value])}
+        PEG Ratio Check: {clean_boolean(results[VIKeys.peg_ratio_check.value])}\n
     ''')

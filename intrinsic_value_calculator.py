@@ -128,32 +128,32 @@ def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total
 
 def main(stock_symbol):
     stock_symbol = stock_symbol.upper()
-    print(f"Calculating Intrinsic Value for: {stock_symbol}")
-    print("Fetching Yearly Income Statements...")
+    op.loading_message(f"Calculating Intrinsic Value for: {stock_symbol}")
+    op.loading_message("Fetching Yearly Income Statements")
     income_statements_yrly = stret.get_financial_statement(
         stret.INCOME_STATEMENT, stock_symbol)
-    print("Fetching Yearly Cash Flow Statements...")
+    op.loading_message("Fetching Yearly Cash Flow Statements")
     cash_flow_statements_yrly = stret.get_financial_statement(
         stret.CASH_FLOW_STATEMENT, stock_symbol)
 
     # cash flow from ops
     # use net income if cash flow from ops not increasing
     # if net income not increasing as well skip
-    print("Parsing Cash Flows from Operations...")
+    op.loading_message("Parsing Cash Flows from Operations")
     cash_flow_from_ops = get_cash_flows(cash_flow_statements_yrly)
-    print("Parsing Net Incomes...")
+    op.loading_message("Parsing Net Incomes")
     net_incomes = get_net_incomes(income_statements_yrly)
 
     # total debt (short term + long) latest quarter
-    print("Fetching Quarterly Balance Sheets...")
+    op.loading_message("Fetching Quarterly Balance Sheets")
     balance_sheets_qrtrly = stret.get_financial_statement(
         stret.BALANCE_SHEET, stock_symbol, quarterly=True)
-    print("Calculating Total Debt...")
+    op.loading_message("Calculating Total Debt")
     total_debt = get_total_debt(balance_sheets_qrtrly)
     if total_debt == -1:
         exit
     # cash and short term investments
-    print("Calculating Total Cash on Hand...")
+    op.loading_message("Calculating Total Cash on Hand")
     total_cash_and_short_term_investments = get_total_cash_on_hand(
         balance_sheets_qrtrly)
     if total_cash_and_short_term_investments == -1:
@@ -168,34 +168,34 @@ def main(stock_symbol):
     current_year_cash_flow = cash_flow_from_ops[0]
     current_year_net_income = net_incomes[0]
 
-    print("Calculating Projected Cash Flows...")
+    op.loading_message("Calculating Projected Cash Flows")
     projected_growths_cash_flow = get_projected_cash_flow(
         current_year_cash_flow, projected_growth_5Y, projected_growth_after_5Y)
-    print("Calculating Projected Net Incomes...")
+    op.loading_message("Calculating Projected Net Incomes")
     projected_growths_net_income = get_projected_cash_flow(
         current_year_net_income, projected_growth_5Y, projected_growth_after_5Y)
 
-    print("Fetching Number of Outstanding Shares from Finviz...")
+    op.loading_message("Fetching Number of Outstanding Shares from Finviz")
     no_outstanding_shares = finviz.get_no_shares(stock_symbol)
-    print("Fetching Beta Value from Finviz...")
+    op.loading_message("Fetching Beta Value from Finviz")
     beta_value = finviz.get_beta(stock_symbol)
 
     discounted_rates = calculate_discount_rates(
         get_discount_from_beta(beta_value))
 
-    print("Calculating Discounted Projected Cash Flows...")
+    op.loading_message("Calculating Discounted Projected Cash Flows")
     projected_cash_flow_discounted = calculate_discounted_values(
         projected_growths_cash_flow, discounted_rates)
 
-    print("Calculating Intrinsic Value from Cash Flow...")
+    op.loading_message("Calculating Intrinsic Value from Cash Flow")
     intrisic_value_cash_flow = calculate_intrinsic_value(sum(
         projected_cash_flow_discounted), no_outstanding_shares, total_debt, total_cash_and_short_term_investments)
 
-    print("Calculating Discounted Projected Cash Flows...")
+    op.loading_message("Calculating Discounted Projected Cash Flows")
     projected_net_income_discounted = calculate_discounted_values(
         projected_growths_net_income, discounted_rates)
 
-    print("Calculating Intrinsic Value from Net Income...")
+    op.loading_message("Calculating Intrinsic Value from Net Income")
     intrisic_value_net_income = calculate_intrinsic_value(sum(
         projected_net_income_discounted), no_outstanding_shares, total_debt, total_cash_and_short_term_investments)
 
@@ -234,7 +234,7 @@ def main(stock_symbol):
             IVCKeys.cash_from_ops.value: fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops[:5][::-1]), IVCKeys.net_income.value: fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes[:5][::-1])
         }
     }
-    op.display_intrinsic_value(results)
+    op.print_intrinsic_value(results, IVCKeys)
 
 if __name__ == "__main__":
     main("AAPL")
