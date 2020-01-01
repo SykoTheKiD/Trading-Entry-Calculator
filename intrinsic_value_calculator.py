@@ -26,7 +26,8 @@ class IVCKeys(Enum):
     evaluation = "Evaluation"
     peg = "PEG"
     market_price = "Current Market Price"
-    market_delta = "Delta"
+    market_delta_cash_flow = "Delta"
+    market_delta_net_income = "Delta"
     debt_per_share = "Debt Per Share"
     intrinsic_value_prior = "Intrinsic Value Prior"
     cash_per_share = "Cash Per Share"
@@ -126,7 +127,7 @@ def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total
             IVCKeys.cash_per_share.value: cash_per_share,
             IVCKeys.intrinsic_value.value: intrinsic_value}
 
-def main(stock_symbol):
+def main(stock_symbol, show=True):
     stock_symbol = stock_symbol.upper()
     op.loading_message(f"Calculating Intrinsic Value for: {stock_symbol}")
     op.loading_message("Fetching Yearly Income Statements")
@@ -229,12 +230,15 @@ def main(stock_symbol):
         IVCKeys.evaluation.value: {
             IVCKeys.peg.value: finviz.get_peg_ratio(stock_symbol),
             IVCKeys.market_price.value: market_price,
-            IVCKeys.market_delta.value: market_price - intrinsic_value_cash_flow_final,
-            IVCKeys.market_delta.value: market_price - intrinsic_value_net_income_final,
+            IVCKeys.market_delta_cash_flow.value: market_price - intrinsic_value_cash_flow_final,
+            IVCKeys.market_delta_net_income.value: market_price - intrinsic_value_net_income_final,
             IVCKeys.cash_from_ops.value: fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops[:5][::-1]), IVCKeys.net_income.value: fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes[:5][::-1])
         }
     }
-    op.print_intrinsic_value(results, IVCKeys)
+    if show:
+        op.print_intrinsic_value(results, IVCKeys)
+    else:
+        return results
 
 if __name__ == "__main__":
     main("AAPL")
