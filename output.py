@@ -1,8 +1,11 @@
 # TODO Format file
+from dotenv import load_dotenv
 import sys
 import os
 
-CURRENT_CAPITAL = os.getenv('CURRENT_CAPITAL')
+load_dotenv()
+
+CURRENT_CAPITAL = float(os.environ['CURRENT_CAPITAL'])
 
 def line_break(length=50):
     print('*' * length)

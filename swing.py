@@ -4,6 +4,7 @@
 ''' My personal swing trading entry formula
 '''
 from pricing import get_last_price_data, PricePayloadKeys
+from dotenv import load_dotenv
 from stock import Stock
 from trade import Trade
 
@@ -15,8 +16,9 @@ import holidays
 import sys
 import os
 
-CURRENT_CAPITAL = os.getenv('CURRENT_CAPITAL')
-COMMISSION_COST = os.getenv('COMMISSION_COST')
+load_dotenv()
+CURRENT_CAPITAL = float(os.environ['CURRENT_CAPITAL'])
+COMMISSION_COST = float(os.environ['COMMISSION_COST'])
 
 ## TODO: Add break for large candles
 def get_price_padding(closing_price):
@@ -48,7 +50,7 @@ def calculate_entry_exits(stock):
 
     capital_at_risk = CURRENT_CAPITAL * 0.01
     entry = high + get_price_padding(close)
-    stop = low  + COMMISSION_COST - get_price_padding(close)
+    stop = low  - get_price_padding(close)
     
     delta_1r = entry - stop
     delta_15r = delta_1r * 1.5
@@ -96,31 +98,28 @@ def grab_prices(symbol):
             print(last_trading_day)
             raise ValueError('Data for {0} is not available'.format(today))
 
-        high = float(PricePayloadKeys.high.value)
-        low = float(PricePayloadKeys.low.value)
-        open_price = float(PricePayloadKeys.open_price.value)
-        close_price = float(PricePayloadKeys.price.value)
+        high = float(current_prices[PricePayloadKeys.high.value])
+        low = float(current_prices[PricePayloadKeys.low.value])
+        open_price = float(current_prices[PricePayloadKeys.open_price.value])
+        close_price = float(current_prices[PricePayloadKeys.price.value])
         return Stock(high, low, close_price, open_price, symbol)
     except KeyError:
         print("JSON Response from AlphaVantage Corrupt")
 
-def summarize(trades):
-    op.print_swing_report(trades)
-
 def main(symbols):
     trades = []
     for symbol in symbols:
-        try:
-            stock = grab_prices(symbol)
-            op.line_break()
-            trade_obj = calculate_entry_exits(stock)
-            trades.append(trade_obj)
+        # try:
+        stock = grab_prices(symbol)
+        op.line_break()
+        trade_obj = calculate_entry_exits(stock)
+        trades.append(trade_obj)
 
-        except (ValueError, KeyError) as e:
-            print("Process Error for stock", symbol.upper(), e)
+        # except (ValueError, KeyError) as e:
+            # print("Process Error for stock", symbol.upper(), e)
 
     op.line_break()
-    summarize(trades)
+    op.print_swing_report(trades)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ import swing
 
 def main():
     while True:
-        trade_type = input("What type of trading will you be doing\n\t1.Swing Trading\n\t2.Value Investing\n")
+        trade_type = input("What type of trading will you be doing\n\t1.Swing Trading\n\t2.Value Investing --> ")
         stocks = input("Enter each stock symbol separated by a space:\n")
         stock_list = stocks.split(" ")
         if trade_type == "1":
