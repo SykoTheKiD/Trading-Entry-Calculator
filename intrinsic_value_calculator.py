@@ -26,8 +26,8 @@ class IVCKeys(Enum):
     evaluation = "Evaluation"
     peg = "PEG"
     market_price = "Current Market Price"
-    market_delta_cash_flow = "Delta"
-    market_delta_net_income = "Delta"
+    market_delta_cash_flow = "Delta (Cash Flow)"
+    market_delta_net_income = "Delta (Net Income)"
     debt_per_share = "Debt Per Share"
     intrinsic_value_prior = "Intrinsic Value Prior"
     cash_per_share = "Cash Per Share"
@@ -165,7 +165,7 @@ def main(stock_symbol, show=True):
 
     projected_growth_5Y = projected_growth_5Y / 100 if projected_growth_5Y != None else 0
     projected_growth_after_5Y = projected_growth_after_5Y / 100
-    
+ 
     current_year_cash_flow = cash_flow_from_ops[0]
     current_year_net_income = net_incomes[0]
 

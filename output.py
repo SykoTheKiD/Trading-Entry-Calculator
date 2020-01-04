@@ -108,11 +108,11 @@ def print_intrinsic_value(results, IVCKeys):
         Projections using Cash flow from Operations:
                 Cash Flow from Ops: ${results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.cash_from_ops.value]:,}
                 Intrinsic Value: --> ${_clean_number(results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
-                Delta: {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta.value])}
+                Delta (Cash Flow): {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta_cash_flow.value])}
         Projections using Net Income:
                 Net Income: ${results[IVCKeys.net_income_calcs.value][IVCKeys.net_income.value]:,}
                 Intrinsic Value: --> ${_clean_number(results[IVCKeys.net_income_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
-                Delta: {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta.value])}
+                Delta (Net Income): {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta_net_income.value])}
         Current PEG Ratio: {results[IVCKeys.evaluation.value][IVCKeys.peg.value]}
         Cash Flows from Ops Increasing: {results[IVCKeys.evaluation.value][IVCKeys.cash_from_ops.value]}
         Net Incomes Increasing: {results[IVCKeys.evaluation.value][IVCKeys.net_income.value]}
