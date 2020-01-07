@@ -1,4 +1,3 @@
 holidays
-dotenv
 ssl
 argparse

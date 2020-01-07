@@ -4,10 +4,10 @@
 ''' My personal swing trading entry formula
 '''
 from pricing import get_last_price_data, PricePayloadKeys
-from dotenv import load_dotenv
 from stock import Stock
 from trade import Trade
 
+import config_loader as cl
 import output as op
 import argparse
 import datetime
@@ -15,10 +15,6 @@ import holidays
 
 import sys
 import os
-
-load_dotenv()
-CURRENT_CAPITAL = float(os.environ['CURRENT_CAPITAL'])
-COMMISSION_COST = float(os.environ['COMMISSION_COST'])
 
 ## TODO: Add break for large candles
 def get_price_padding(closing_price):
@@ -48,7 +44,7 @@ def calculate_entry_exits(stock):
     if(not (low <= close <= high)):
         raise ValueError('Low < Close < High not met', high, low, close)
 
-    capital_at_risk = CURRENT_CAPITAL * 0.01
+    capital_at_risk = cl.CURRENT_CAPITAL * 0.01
     entry = high + get_price_padding(close)
     stop = low  - get_price_padding(close)
     
@@ -62,7 +58,7 @@ def calculate_entry_exits(stock):
     r3_exit = entry + delta_3r
     
     pos_size = round(capital_at_risk/delta_1r)
-    break_even_price = entry + COMMISSION_COST / pos_size
+    break_even_price = entry + cl.COMMISSION_COST / pos_size
     break_even_differential = break_even_price - entry
     profit_r2 = delta_2r * pos_size
 
@@ -109,14 +105,13 @@ def grab_prices(symbol):
 def main(symbols):
     trades = []
     for symbol in symbols:
-        # try:
-        stock = grab_prices(symbol)
-        op.line_break()
-        trade_obj = calculate_entry_exits(stock)
-        trades.append(trade_obj)
-
-        # except (ValueError, KeyError) as e:
-            # print("Process Error for stock", symbol.upper(), e)
+        try:
+            stock = grab_prices(symbol)
+            op.line_break()
+            trade_obj = calculate_entry_exits(stock)
+            trades.append(trade_obj)
+        except (ValueError, KeyError) as e:
+            print("Process Error for stock", symbol.upper(), e)
 
     op.line_break()
     op.print_swing_report(trades)
@@ -127,4 +122,3 @@ if __name__ == "__main__":
     parser.add_argument('symbols', nargs='+', type=str)
     args = parser.parse_args()
     main(args.symbols)
-

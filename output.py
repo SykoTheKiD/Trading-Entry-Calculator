@@ -1,11 +1,8 @@
 # TODO Format file
-from dotenv import load_dotenv
+import config_loader as cl
 import sys
 import os
 
-load_dotenv()
-
-CURRENT_CAPITAL = float(os.environ['CURRENT_CAPITAL'])
 TITLE_LENGTH = 45
 
 def line_break(length=50):
@@ -65,8 +62,8 @@ def print_swing_report(trades):
     Stock List Summary
     *******************
     Number of Stocks: {num_trades}
-    Total Potential Profit: {0.01*CURRENT_CAPITAL*2*num_trades}
-    Total Potential Loss: {0.01*CURRENT_CAPITAL*num_trades}
+    Total Potential Profit: {0.01*cl.CURRENT_CAPITAL*2*num_trades}
+    Total Potential Loss: {0.01*cl.CURRENT_CAPITAL*num_trades}
     Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
     Highest Price Stock: {highest.symbol} @ {highest.close}/shr
         ''')
@@ -82,8 +79,8 @@ def print_swing_report(trades):
     msg = str()
     if(num_trades > 5):
         msg += "**Warning: Total capital at risk exceeds 5%\n**"
-    if total_capital_reqd > CURRENT_CAPITAL:
-        msg += f"***! Total capital required (${_clean_number(total_capital_reqd)}) exceeds current capital (${CURRENT_CAPITAL}) !***"
+    if total_capital_reqd > cl.CURRENT_CAPITAL:
+        msg += f"***! Total capital required (${_clean_number(total_capital_reqd)}) exceeds current capital (${cl.CURRENT_CAPITAL}) !***"
 
     print(f'''
 Trade Summary

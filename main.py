@@ -1,5 +1,4 @@
 import intrinsic_value_calculator
-from dotenv import load_dotenv
 import value_investing
 import value_screener
 import output as op
@@ -26,7 +25,3 @@ def main():
     except KeyboardInterrupt:
         print("\n\nGoodbye!")
         exit()
-
-if __name__ == "__main__":
-    load_dotenv()
-    main()

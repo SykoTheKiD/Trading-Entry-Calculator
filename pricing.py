@@ -1,10 +1,10 @@
+import config_loader as cl
+
 from enum import Enum
 import urllib.request
 import json
 import ssl
 import os
-
-API_KEY = os.getenv('SWING_API_KEY')
 
 class PricePayloadKeys(Enum):
     symbol = "symbol"
@@ -21,7 +21,7 @@ class PricePayloadKeys(Enum):
 
 def get_last_price_data(stock_symbol):
     #SSL bypass hardcoded, it's fine because it's a simple API call with no personal details
-    with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock_symbol}&apikey={API_KEY}", context=ssl.SSLContext()) as url:
+    with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock_symbol}&apikey={cl.SWING_API_KEY}", context=ssl.SSLContext()) as url:
         data = json.loads(url.read().decode())
     try:
         data = data["Global Quote"]
@@ -40,4 +40,3 @@ def get_last_price_data(stock_symbol):
         return payload
     except KeyError:
         raise KeyError("JSON Response Corrupt")
-

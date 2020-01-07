@@ -13,7 +13,7 @@ def main():
     op.print_title_panel("Value Screener Pro")
     all_stocks = get_all_stocks()
     error_stocks = 0
-    for stock in tqdm(all_stocks):
+    for stock in tqdm(all_stocks[232:]):
         symbol = stock[StockListKeys.symbol.value]
         num_retries = 0
         try:
@@ -29,6 +29,3 @@ def main():
             else:
                 num_retries += 1
                 time.sleep(10)
-
-if __name__ == "__main__":
-    main()
