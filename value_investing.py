@@ -154,12 +154,9 @@ def main(stock):
         total_current_assets, total_current_liabilities)
     op.loading_message("Calculating Debt to Equity Ratio")
     de_ratios = calculate_ratios(total_liabilities, total_shareholders_equity)
-    op.loading_message("Calculating Debt Servicing Ratio (FCF)")
-    debt_servicing_ratios_fcf = calculate_ttm_ratio(
+    op.loading_message("Calculating Debt Servicing Ratio")
+    debt_servicing_ratios_fcf = calculate_ratios(
         interest_expense, free_cash_flows)
-    op.loading_message("Calculating Debt Servicing Ratio (Net Income)")
-    debt_servicing_ratios_net_income = calculate_ttm_ratio(
-        interest_expense, net_incomes)
     op.loading_message("Calculating Free Cash Flow (Revenues)")
     fcf_revenues = calculate_ratios(free_cash_flows, revenues)
     op.loading_message("Calculating Return on Equity (FCF)")
@@ -189,12 +186,9 @@ def main(stock):
         VIKeys.debt_to_equity_ratio.value: de_ratios,
         VIKeys.debt_to_equity_ratio_trend.value: fuzzy_increase(
             stret.DEBT_TO_EQUITY_RATIO_ATTR, de_ratios),
-        VIKeys.debt_to_equity_ratio_trend.value: debt_servicing_ratios_fcf,
+        VIKeys.debt_servicing_ratio_free_cash_flow.value: debt_servicing_ratios_fcf,
         VIKeys.debt_servicing_ratio_free_cash_flow_decision.value: calculate_flow_graph(
             [debt_servicing_ratios_fcf], DEBT_SERVICING_RATIO_THRESHOLD),
-        VIKeys.debt_servicing_ratio_net_incomes.value: debt_servicing_ratios_net_income,
-        VIKeys.debt_servicing_ratio_net_incomes_decision.value: calculate_flow_graph(
-            [debt_servicing_ratios_net_income], DEBT_SERVICING_RATIO_THRESHOLD),
         VIKeys.cash_flow_from_ops.value: cash_flow_from_ops,
         VIKeys.cash_flow_from_ops_trend.value: fuzzy_increase(
             stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops),

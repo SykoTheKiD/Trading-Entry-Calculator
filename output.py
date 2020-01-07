@@ -142,8 +142,8 @@ def print_value_investing_report(results, VIKeys):
         Free Cash Flow Trend: {clean_boolean(results[VIKeys.free_cash_flow_trend.value])}\n
         Debt to Equity Ratios: {clean_list([*map(_clean_number, results[VIKeys.debt_to_equity_ratio.value])], results[VIKeys.years.value])}
         Debt to Equity Ratio Trend: {clean_boolean(results[VIKeys.debt_to_equity_ratio_trend.value])}\n
-        Debt Servicing Ratio (FCF): {results[VIKeys.debt_servicing_ratio_free_cash_flow_decision.value][0]}
-        Debt Servicing Ratio (Net Income): {results[VIKeys.debt_servicing_ratio_net_incomes_decision.value][0]}\n
+        Debt Servicing Ratio (FCF): {clean_list([*map(_clean_number, results[VIKeys.debt_servicing_ratio_free_cash_flow.value])], results[VIKeys.years.value])}
+        Debt Servicing Ratio Trend: {clean_list(results[VIKeys.debt_servicing_ratio_free_cash_flow_decision.value], results[VIKeys.years.value])}\n
         Cash Flow from Ops: {clean_list([*map(lambda x: x/1e6, results[VIKeys.cash_flow_from_ops.value])], results[VIKeys.years.value])}
         Cash Flow from Ops Trend: {clean_boolean(results[VIKeys.cash_flow_from_ops_trend.value])}\n
         EPS: {clean_list(results[VIKeys.eps.value], results[VIKeys.years.value])}
