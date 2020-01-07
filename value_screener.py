@@ -8,12 +8,13 @@ import output as op
 import time
 
 MAX_NETWORK_RETRIES  = 5
+DELAY_TIME = 10
 
-def main():
+def main(start_index=0):
     op.print_title_panel("Value Screener Pro")
     all_stocks = get_all_stocks()
     error_stocks = 0
-    for stock in tqdm(all_stocks[232:]):
+    for stock in tqdm(all_stocks[start_index:]):
         symbol = stock[StockListKeys.symbol.value]
         num_retries = 0
         try:
@@ -28,4 +29,4 @@ def main():
                 op.log_verbose("Network Congestion")
             else:
                 num_retries += 1
-                time.sleep(10)
+                time.sleep(DELAY_TIME)

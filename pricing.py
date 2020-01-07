@@ -4,7 +4,6 @@ from enum import Enum
 import urllib.request
 import json
 import ssl
-import os
 
 class PricePayloadKeys(Enum):
     symbol = "symbol"

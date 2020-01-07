@@ -46,6 +46,7 @@ class VIKeys(Enum):
     peg_ratio = "PEG Ratio"
     peg_ratio_check = "PEG Ratio Check"
     years = "Years"
+    current_ratio = "Current Ratio"
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
@@ -177,6 +178,7 @@ def main(stock):
     results = {
         VIKeys.company_name.value: get_company_name(stock),
         VIKeys.symbol.value: stock,
+        VIKeys.current_ratio.value: current_ratio,
         VIKeys.cash_flow_from_financing.value: calculate_flow_graph(
             cash_from_investments, CASH_FLOW_FROM_FINANCING_THRESHOLD),
         VIKeys.cash_flow_from_investing.value: calculate_flow_graph(

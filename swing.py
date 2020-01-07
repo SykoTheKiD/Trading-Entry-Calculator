@@ -14,7 +14,6 @@ import datetime
 import holidays
 
 import sys
-import os
 
 ## TODO: Add break for large candles
 def get_price_padding(closing_price):

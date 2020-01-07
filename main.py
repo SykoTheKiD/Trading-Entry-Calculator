@@ -19,9 +19,17 @@ def main():
                         value_investing.main(i)
                         intrinsic_value_calculator.main(i)
             elif trade_type == "3":
-                value_screener.main()
+                start_index = input("Enter a start index to begin searching --> ")
+                try:
+                    start_index = int(start_index)
+                    value_screener.main(start_index)
+                except ValueError:
+                    value_screener.main()
             else:
                 exit()
     except KeyboardInterrupt:
         print("\n\nGoodbye!")
         exit()
+
+if __name__ == "__main__":
+    main()

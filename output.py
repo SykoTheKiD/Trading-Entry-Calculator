@@ -1,7 +1,6 @@
 # TODO Format file
 import config_loader as cl
 import sys
-import os
 
 TITLE_LENGTH = 45
 
@@ -22,16 +21,16 @@ def clean_list(lst, years):
         return ret
 
 def loading_message(msg):
-    if os.getenv("VERBOSITY") == 1:
+    if cl.VERBOSITY == 1:
         print(msg, "...")
 
 def log_verbose(msg):
-    if os.getenv("VERBOSITY") == 1:
+    if cl.VERBOSITY == 1:
         print(msg)
 
 
 def log_error(msg):
-    if os.getenv("VERBOSITY") == 1:
+    if cl.VERBOSITY == 1:
         print("ERROR:", msg)
 
 def print_title_panel(title):
@@ -136,6 +135,7 @@ def print_value_investing_report(results, VIKeys):
         -- Value Investing Report (Details Cover (Last 5Y)) --
         Company: {results[VIKeys.company_name.value]}
         Symbol: {results[VIKeys.symbol.value]}\n
+        Current Ratio: {results[VIKeys.current_ratio.value]}\n
         Cash Flows From Financing: {clean_list(results[VIKeys. cash_flow_from_financing.value], results[VIKeys.years.value])}
         Cash Flows From Investing: {clean_list(results[VIKeys. cash_flow_from_investing.value], results[VIKeys.years.value])}\n
         Free Cash Flows: {clean_list([*map(lambda x: x/1e6, results[VIKeys.free_cash_flow.value])], results[VIKeys.years.value])}
