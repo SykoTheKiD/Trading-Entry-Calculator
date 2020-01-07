@@ -1,5 +1,5 @@
 # TODO Format file
-
+from exceptions import FinvizError
 from bs4 import BeautifulSoup
 import requests
 
@@ -19,7 +19,7 @@ def get_eps_growth_5Y(stock_symbol):
     try:
         return float(eps_5Y[:-1])
     except ValueError:
-        exit
+        raise FinvizError
 
 def get_no_shares(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -35,7 +35,7 @@ def get_no_shares(stock_symbol):
         no_shares_float = float(no_shares[:-1]) * factor
         return no_shares_float
     except ValueError:
-        exit
+        raise FinvizError
 
 def get_beta(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -43,7 +43,7 @@ def get_beta(stock_symbol):
     try:
         return float(beta)
     except ValueError:
-        exit
+        raise FinvizError
 
 def get_peg_ratio(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -51,7 +51,7 @@ def get_peg_ratio(stock_symbol):
     try:
         return float(peg_ratio)
     except ValueError:
-        exit
+        raise FinvizError
 
 def get_company_name(stock_symbol):
     page = _get_finviz_stock_page(stock_symbol)

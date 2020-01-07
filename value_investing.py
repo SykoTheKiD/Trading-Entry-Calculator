@@ -1,4 +1,5 @@
 from finviz import get_peg_ratio, get_company_name
+from exceptions import DocumentError, FinvizError
 from operator import truediv, gt, le
 import statement_retrieval as stret
 from fuzzy import fuzzy_increase
@@ -50,9 +51,11 @@ def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
 
 def calculate_ttm_ratio(lst1, lst2):
-    ttm1 = lst1[-1]
-    ttm2 = lst2[-1]
-    return ttm1/ttm2
+    if len(lst1) > 0 and len(lst2) > 0:
+        ttm1 = lst1[-1]
+        ttm2 = lst2[-1]
+        return ttm1/ttm2
+    return -1
 
 def calculate_flow_graph(flows, flow_threshold):
     ret = []
@@ -69,9 +72,10 @@ def extract_values_from_statment(statements, statement_attribute):
         for i in range(len(statements)):
             float_val = float(statements[i][statement_attribute.attribute_name])
             float_vals.append(float_val)
-    except ValueError:
-        print("ERROR " + statements[i][statement_attribute.attribute_name])
-    return float_vals
+        return float_vals
+    except (ValueError, KeyError) as e:
+        op.log_error(e)
+        raise DocumentError
 
 
 def evaluate_peg_ratio(peg_ratio):
@@ -81,63 +85,68 @@ def evaluate_peg_ratio(peg_ratio):
 
 def main(stock):
     stock = stock.upper()
-
-    op.loading_message("Fetching Yearly Income Statements")
-    income_statements_yrly = stret.get_financial_statement(
-        stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
-    op.loading_message("Fetching Quarterly Balance Sheets")
-    balance_sheets_qrtrly = stret.get_financial_statement(
-        stret.BALANCE_SHEET, stock, quarterly=True)[stret.StatementKeys.financials.value][::-1][-5:]
-    op.loading_message("Fetching Yearly Cash Flow Statements")
-    cash_flow_statements_yrly = stret.get_financial_statement(
-        stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
+    try:
+        op.loading_message("Fetching Yearly Income Statements")
+        income_statements_yrly = stret.get_financial_statement(
+            stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
+        op.loading_message("Fetching Quarterly Balance Sheets")
+        balance_sheets_qrtrly = stret.get_financial_statement(
+            stret.BALANCE_SHEET, stock, quarterly=True)[stret.StatementKeys.financials.value][::-1][-5:]
+        op.loading_message("Fetching Yearly Cash Flow Statements")
+        cash_flow_statements_yrly = stret.get_financial_statement(
+            stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
+    except KeyError as e:
+        op.log_error(e)
+        return
 
     op.loading_message("Parsing Years")
     years = []
     for i in range(len(income_statements_yrly)):
         years.append(income_statements_yrly[i]['date'])
     years = [year.split('-')[0] for year in years]
-
-    op.loading_message("Parsing Net Incomes")
-    net_incomes = extract_values_from_statment(
-        income_statements_yrly, stret.NET_INCOME_ATTR)
-    op.loading_message("Parsing Revenues")
-    revenues = extract_values_from_statment(
-        income_statements_yrly, stret.REVENUE_ATTR)
-    op.loading_message("Parsing EPS Diluted")
-    eps_diluted = extract_values_from_statment(
-        income_statements_yrly, stret.EPS_DILUTED_ATTR)
-    op.loading_message("Parsing Cash Flow from Operations")
-    cash_flow_from_ops = extract_values_from_statment(
-        cash_flow_statements_yrly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
-    op.loading_message("Parsing Total Current Assets")
-    total_current_assets = extract_values_from_statment(
-        balance_sheets_qrtrly, stret.TOTAL_CURRENT_ASSETS_ATTR)
-    op.loading_message("Parsing Total Liabilities")
-    total_liabilities = extract_values_from_statment(
-        balance_sheets_qrtrly, stret.TOTAL_LIABILITIES_ATTR)
-    op.loading_message("Parsing Total Current Liabilities")
-    total_current_liabilities = extract_values_from_statment(
-        balance_sheets_qrtrly, stret.TOTAL_CURRENT_LIABILITIES_ATTR)
-    op.loading_message("Parsing Total Shareholder Equity")
-    total_shareholders_equity = extract_values_from_statment(
-        balance_sheets_qrtrly, stret.TOTAL_SHAREHOLDER_EQUITY_ATTR)
-    op.loading_message("Parsing Free Cash Flows")
-    free_cash_flows = extract_values_from_statment(
-        cash_flow_statements_yrly, stret.FREE_CASH_FLOWS_ATTR)
-    op.loading_message("Parsing Cash From Financing")
-    cash_from_financing = extract_values_from_statment(
-        cash_flow_statements_yrly, stret.CASH_FROM_FINANCING_ATTR)
-    op.loading_message("Parsing Cash From Investments")
-    cash_from_investments = extract_values_from_statment(
-        cash_flow_statements_yrly, stret.CASH_FROM_INVESTMENTS_ATTR)
-    op.loading_message("Parsing Interest Expense")
-    interest_expense = extract_values_from_statment(
-        income_statements_yrly, stret.INTEREST_EXPENSE_ATTR)
-    op.loading_message("Parsing Gross Margin")
-    gross_margin = extract_values_from_statment(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
-    op.loading_message("Parsing Net Margin")
-    net_profit_margins = extract_values_from_statment(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
+    try:
+        op.loading_message("Parsing Net Incomes")
+        net_incomes = extract_values_from_statment(
+            income_statements_yrly, stret.NET_INCOME_ATTR)
+        op.loading_message("Parsing Revenues")
+        revenues = extract_values_from_statment(
+            income_statements_yrly, stret.REVENUE_ATTR)
+        op.loading_message("Parsing EPS Diluted")
+        eps_diluted = extract_values_from_statment(
+            income_statements_yrly, stret.EPS_DILUTED_ATTR)
+        op.loading_message("Parsing Cash Flow from Operations")
+        cash_flow_from_ops = extract_values_from_statment(
+            cash_flow_statements_yrly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
+        op.loading_message("Parsing Total Current Assets")
+        total_current_assets = extract_values_from_statment(
+            balance_sheets_qrtrly, stret.TOTAL_CURRENT_ASSETS_ATTR)
+        op.loading_message("Parsing Total Liabilities")
+        total_liabilities = extract_values_from_statment(
+            balance_sheets_qrtrly, stret.TOTAL_LIABILITIES_ATTR)
+        op.loading_message("Parsing Total Current Liabilities")
+        total_current_liabilities = extract_values_from_statment(
+            balance_sheets_qrtrly, stret.TOTAL_CURRENT_LIABILITIES_ATTR)
+        op.loading_message("Parsing Total Shareholder Equity")
+        total_shareholders_equity = extract_values_from_statment(
+            balance_sheets_qrtrly, stret.TOTAL_SHAREHOLDER_EQUITY_ATTR)
+        op.loading_message("Parsing Free Cash Flows")
+        free_cash_flows = extract_values_from_statment(
+            cash_flow_statements_yrly, stret.FREE_CASH_FLOWS_ATTR)
+        op.loading_message("Parsing Cash From Financing")
+        cash_from_financing = extract_values_from_statment(
+            cash_flow_statements_yrly, stret.CASH_FROM_FINANCING_ATTR)
+        op.loading_message("Parsing Cash From Investments")
+        cash_from_investments = extract_values_from_statment(
+            cash_flow_statements_yrly, stret.CASH_FROM_INVESTMENTS_ATTR)
+        op.loading_message("Parsing Interest Expense")
+        interest_expense = extract_values_from_statment(
+            income_statements_yrly, stret.INTEREST_EXPENSE_ATTR)
+        op.loading_message("Parsing Gross Margin")
+        gross_margin = extract_values_from_statment(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
+        op.loading_message("Parsing Net Margin")
+        net_profit_margins = extract_values_from_statment(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
+    except DocumentError as e:
+        op.log_error(e)
 
     op.loading_message("Calculating Current Ratio")
     current_ratio = calculate_ttm_ratio(
@@ -159,7 +168,11 @@ def main(stock):
     return_on_equity_net_income = calculate_ratios(
         net_incomes, total_shareholders_equity)
     op.loading_message("Fetching PEG Ratio")
-    peg_ratio = get_peg_ratio(stock)
+    try:
+        peg_ratio = get_peg_ratio(stock)
+    except FinvizError as e:
+        op.log_error(e)
+        return
 
     results = {
         VIKeys.company_name.value: get_company_name(stock),
@@ -203,9 +216,6 @@ def main(stock):
         VIKeys.years.value: years,
     }
     op.print_value_investing_report(results, VIKeys)
-
-if __name__ == "__main__":
-    main("AAPL")
 
 # income statement
 # TODO gross profit higher than industry

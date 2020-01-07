@@ -3,8 +3,7 @@ import intrinsic_value_calculator as ivc
 from tqdm import tqdm
 import output as op
 
-
-if __name__ == "__main__":
+def main():
     all_stocks = get_all_stocks()
     error_stocks = 0
     for stock in tqdm(all_stocks):
@@ -15,4 +14,8 @@ if __name__ == "__main__":
                 op.print_intrinsic_value(results)
         except Exception:
             error_stocks += 1
+    op.log_verbose(f"failed for {error_stocks} stocks")
+
+if __name__ == "__main__":
+    main()
 

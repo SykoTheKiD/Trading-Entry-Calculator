@@ -1,5 +1,7 @@
 from pricing import get_last_price_data, PricePayloadKeys
+from exceptions import DocumentError
 import statement_retrieval as stret
+from exceptions import FinvizError
 from fuzzy import fuzzy_increase
 from enum import Enum
 import output as op
@@ -52,44 +54,56 @@ def get_discount_from_beta(discount_rate):
         return 0.09
 
 def get_cash_flows(cash_flow_statements):
-    statements = cash_flow_statements[stret.StatementKeys.financials.value]
+    try:
+        statements = cash_flow_statements[stret.StatementKeys.financials.value]
+    except KeyError as e:
+        raise DocumentError
     cash_flow_values = []
     for statement in statements:
         try:
             cash_flow = float(statement[stret.StatementKeys.operating_cash_flow.value])
             cash_flow_values.append(cash_flow)
-        except ValueError:
-            print(statement[stret.StatementKeys.operating_cash_flow.value])
-    return cash_flow_values
+            return cash_flow_values
+        except ValueError as e:
+            raise e    
 
 def get_net_incomes(income_statements):
-    statements = income_statements[stret.StatementKeys.financials.value]
+    try:
+        statements = income_statements[stret.StatementKeys.financials.value]
+    except KeyError as e:
+        raise DocumentError
     net_income_values = []
     for statement in statements:
         try:
             net_incomes = float(statement[stret.StatementKeys.net_income.value])
             net_income_values.append(net_incomes)
-        except ValueError:
-            print(statement[stret.StatementKeys.net_income.value])
-    return net_income_values
+            return net_income_values
+        except ValueError as e:
+            raise e
 
 
 def get_total_debt(qrtrly_balance_sheets):
-    latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
+    try:
+        latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
+    except KeyError as e:
+        raise DocumentError
     try:
         short_term_debt = float(latest_statement[stret.StatementKeys.short_term_debt.value])
         long_term_debt = float(latest_statement[stret.StatementKeys.long_term_debt.value])
         return short_term_debt + long_term_debt
-    except ValueError:
-        return -1
+    except ValueError as e:
+        raise e
 
 
 def get_total_cash_on_hand(qrtrly_balance_sheets):
-    latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
+    try:
+        latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
+    except KeyError as e:
+        raise DocumentError
     try:
         return float(latest_statement[stret.StatementKeys.cash_and_short_term_investments.value])
-    except ValueError:
-        return -1
+    except ValueError as e:
+        raise e
 
 def get_projected_cash_flow(current_cash, initial_growth, projected_growth):
     curr = current_cash
@@ -140,46 +154,59 @@ def main(stock_symbol, show=True):
     # cash flow from ops
     # use net income if cash flow from ops not increasing
     # if net income not increasing as well skip
-    op.loading_message("Parsing Cash Flows from Operations")
-    cash_flow_from_ops = get_cash_flows(cash_flow_statements_yrly)
-    op.loading_message("Parsing Net Incomes")
-    net_incomes = get_net_incomes(income_statements_yrly)
+    try:
+        op.loading_message("Parsing Cash Flows from Operations")
+        try:
+            cash_flow_from_ops = get_cash_flows(cash_flow_statements_yrly)
+        except DocumentError as e:
+            op.log_error(e)
+            return
+        op.loading_message("Parsing Net Incomes")
+        try:
+            net_incomes = get_net_incomes(income_statements_yrly)
+        except DocumentError as e:
+            op.log_error(e)
+            return
 
-    # total debt (short term + long) latest quarter
-    op.loading_message("Fetching Quarterly Balance Sheets")
-    balance_sheets_qrtrly = stret.get_financial_statement(
-        stret.BALANCE_SHEET, stock_symbol, quarterly=True)
-    op.loading_message("Calculating Total Debt")
-    total_debt = get_total_debt(balance_sheets_qrtrly)
-    if total_debt == -1:
-        exit
-    # cash and short term investments
-    op.loading_message("Calculating Total Cash on Hand")
-    total_cash_and_short_term_investments = get_total_cash_on_hand(
-        balance_sheets_qrtrly)
-    if total_cash_and_short_term_investments == -1:
-        exit
+        # total debt (short term + long) latest quarter
+        op.loading_message("Fetching Quarterly Balance Sheets")
+        balance_sheets_qrtrly = stret.get_financial_statement(
+            stret.BALANCE_SHEET, stock_symbol, quarterly=True)
+        op.loading_message("Calculating Total Debt")
+        total_debt = get_total_debt(balance_sheets_qrtrly)
+        # cash and short term investments
+        op.loading_message("Calculating Total Cash on Hand")
+        total_cash_and_short_term_investments = get_total_cash_on_hand(
+            balance_sheets_qrtrly)
+    except ValueError as e:
+        op.log_error(e)
+        return
 
-    projected_growth_5Y = finviz.get_eps_growth_5Y(stock_symbol)
-    projected_growth_after_5Y = projected_growth_5Y / 2 if projected_growth_5Y != None else 0
+    try:
+        projected_growth_5Y = finviz.get_eps_growth_5Y(stock_symbol)
+        projected_growth_after_5Y = projected_growth_5Y / 2 if projected_growth_5Y != None else 0
 
-    projected_growth_5Y = projected_growth_5Y / 100 if projected_growth_5Y != None else 0
-    projected_growth_after_5Y = projected_growth_after_5Y / 100
- 
-    current_year_cash_flow = cash_flow_from_ops[0]
-    current_year_net_income = net_incomes[0]
+        projected_growth_5Y = projected_growth_5Y / 100 if projected_growth_5Y != None else 0
+        projected_growth_after_5Y = projected_growth_after_5Y / 100
+    
+        current_year_cash_flow = cash_flow_from_ops[0]
+        current_year_net_income = net_incomes[0]
 
-    op.loading_message("Calculating Projected Cash Flows")
-    projected_growths_cash_flow = get_projected_cash_flow(
-        current_year_cash_flow, projected_growth_5Y, projected_growth_after_5Y)
-    op.loading_message("Calculating Projected Net Incomes")
-    projected_growths_net_income = get_projected_cash_flow(
-        current_year_net_income, projected_growth_5Y, projected_growth_after_5Y)
+        op.loading_message("Calculating Projected Cash Flows")
+        projected_growths_cash_flow = get_projected_cash_flow(
+            current_year_cash_flow, projected_growth_5Y, projected_growth_after_5Y)
+        op.loading_message("Calculating Projected Net Incomes")
+        projected_growths_net_income = get_projected_cash_flow(
+            current_year_net_income, projected_growth_5Y, projected_growth_after_5Y)
 
-    op.loading_message("Fetching Number of Outstanding Shares from Finviz")
-    no_outstanding_shares = finviz.get_no_shares(stock_symbol)
-    op.loading_message("Fetching Beta Value from Finviz")
-    beta_value = finviz.get_beta(stock_symbol)
+        op.loading_message("Fetching Number of Outstanding Shares from Finviz")
+        no_outstanding_shares = finviz.get_no_shares(stock_symbol)
+        op.loading_message("Fetching Beta Value from Finviz")
+        beta_value = finviz.get_beta(stock_symbol)
+    except FinvizError as e:
+        op.log_error(e)
+        return
+
 
     discounted_rates = calculate_discount_rates(
         get_discount_from_beta(beta_value))

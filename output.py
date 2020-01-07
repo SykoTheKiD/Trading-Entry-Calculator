@@ -27,6 +27,15 @@ def loading_message(msg):
     if os.getenv("VERBOSITY") == 1:
         print(msg, "...")
 
+def log_verbose(msg):
+    if os.getenv("VERBOSITY") == 1:
+        print(msg)
+
+
+def log_error(msg):
+    if os.getenv("VERBOSITY") == 1:
+        print("ERROR:", msg)
+
 def print_swing_report(trades):
     '''
     Summarize the trades and the costs
