@@ -47,10 +47,10 @@ def get_beta(stock_symbol):
 
 def get_peg_ratio(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
-    peg_ratio = stock_table[13].get_text()
     try:
+        peg_ratio = stock_table[13].get_text()
         return float(peg_ratio)
-    except ValueError:
+    except (ValueError, IndexError):
         raise FinvizError
 
 def get_company_name(stock_symbol):

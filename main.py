@@ -2,16 +2,13 @@ import intrinsic_value_calculator
 from dotenv import load_dotenv
 import value_investing
 import value_screener
+import output as op
 import swing
-
-TITLE_LENGTH = 45
 
 def main():
     try:
         while True:
-            print("=" * TITLE_LENGTH)
-            print("\tWelcome to Trading Pro 2020")
-            print("=" * TITLE_LENGTH)
+            op.print_title_panel("Welcome to TradingPro 2020")
             trade_type = input("What type of trading will you be doing\n\t1.Swing Trading\n\t2.Value Investing\n\t3.Screen For Value Stocks\n\t4.View Glossary --> ")
             if trade_type == "1" or trade_type == "2":
                 stocks = input("Enter each stock symbol separated by a space:\n")

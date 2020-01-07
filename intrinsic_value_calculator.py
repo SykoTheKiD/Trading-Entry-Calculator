@@ -161,6 +161,7 @@ def main(stock_symbol, show=True):
         except DocumentError as e:
             op.log_error(e)
             return
+
         op.loading_message("Parsing Net Incomes")
         try:
             net_incomes = get_net_incomes(income_statements_yrly)
@@ -206,7 +207,6 @@ def main(stock_symbol, show=True):
     except FinvizError as e:
         op.log_error(e)
         return
-
 
     discounted_rates = calculate_discount_rates(
         get_discount_from_beta(beta_value))
@@ -262,10 +262,8 @@ def main(stock_symbol, show=True):
             IVCKeys.cash_from_ops.value: fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops[:5][::-1]), IVCKeys.net_income.value: fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes[:5][::-1])
         }
     }
+
     if show:
         op.print_intrinsic_value(results, IVCKeys)
-    else:
-        return results
 
-if __name__ == "__main__":
-    main("AAPL")
+    return results

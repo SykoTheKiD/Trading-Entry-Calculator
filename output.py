@@ -6,6 +6,7 @@ import os
 load_dotenv()
 
 CURRENT_CAPITAL = float(os.environ['CURRENT_CAPITAL'])
+TITLE_LENGTH = 45
 
 def line_break(length=50):
     print('*' * length)
@@ -35,6 +36,11 @@ def log_verbose(msg):
 def log_error(msg):
     if os.getenv("VERBOSITY") == 1:
         print("ERROR:", msg)
+
+def print_title_panel(title):
+    print("=" * TITLE_LENGTH)
+    print("\t" + title)
+    print("=" * TITLE_LENGTH)
 
 def print_swing_report(trades):
     '''
