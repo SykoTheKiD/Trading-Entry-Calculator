@@ -7,6 +7,8 @@ from enum import Enum
 import output as op
 import finviz
 
+SHORT_TERM_DEBT_DISCOUNT_FACTOR = 1.2
+LONG_TERM_DEBT_DISCOUNT_FACTOR = 0.25
 NUM_YEARS_PROJECTED = 10
 
 class IVCKeys(Enum):
@@ -82,17 +84,24 @@ def get_net_incomes(income_statements):
             raise e
 
 
-def get_total_debt(qrtrly_balance_sheets):
+def get_total_debt(qrtrly_balance_sheets, inp=False):
     try:
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
     except KeyError as e:
         raise DocumentError
-    try:
-        short_term_debt = float(latest_statement[stret.StatementKeys.short_term_debt.value])
-        long_term_debt = float(latest_statement[stret.StatementKeys.long_term_debt.value])
-        return short_term_debt + long_term_debt
-    except ValueError as e:
-        raise e
+    if inp:
+        short_term_debt = float(input("Enter total short term debt: "))
+        long_term_debt = float(input("Enter total long term debt: "))
+        return 1e6 * (short_term_debt + long_term_debt)
+    else:
+        try:
+            short_term_debt = float(
+                latest_statement[stret.StatementKeys.short_term_debt.value]) * SHORT_TERM_DEBT_DISCOUNT_FACTOR
+            long_term_debt = float(
+                latest_statement[stret.StatementKeys.long_term_debt.value]) * LONG_TERM_DEBT_DISCOUNT_FACTOR
+            return short_term_debt + long_term_debt
+        except ValueError as e:
+            raise e
 
 
 def get_total_cash_on_hand(qrtrly_balance_sheets):
@@ -141,7 +150,7 @@ def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total
             IVCKeys.cash_per_share.value: cash_per_share,
             IVCKeys.intrinsic_value.value: intrinsic_value}
 
-def main(stock_symbol, show=True):
+def main(stock_symbol, show=True, debt_input=False):
     stock_symbol = stock_symbol.upper()
     op.loading_message(f"Calculating Intrinsic Value for: {stock_symbol}")
     op.loading_message("Fetching Yearly Income Statements")
@@ -174,7 +183,7 @@ def main(stock_symbol, show=True):
         balance_sheets_qrtrly = stret.get_financial_statement(
             stret.BALANCE_SHEET, stock_symbol, quarterly=True)
         op.loading_message("Calculating Total Debt")
-        total_debt = get_total_debt(balance_sheets_qrtrly)
+        total_debt = get_total_debt(balance_sheets_qrtrly, debt_input)
         # cash and short term investments
         op.loading_message("Calculating Total Cash on Hand")
         total_cash_and_short_term_investments = get_total_cash_on_hand(
@@ -231,6 +240,12 @@ def main(stock_symbol, show=True):
     intrinsic_value_cash_flow_final = intrisic_value_cash_flow[IVCKeys.intrinsic_value.value]
     intrinsic_value_net_income_final = intrisic_value_net_income[IVCKeys.intrinsic_value.value]
 
+    try:
+        peg_ratio = finviz.get_peg_ratio(stock_symbol)
+    except FinvizError as e:
+        peg_ratio = None
+        op.log_error(e)
+
     results = {
         IVCKeys.company_name.value: finviz.get_company_name(stock_symbol),
         IVCKeys.symbol.value: stock_symbol,
@@ -255,7 +270,7 @@ def main(stock_symbol, show=True):
             IVCKeys.intrinsic_value.value: intrisic_value_net_income
         },
         IVCKeys.evaluation.value: {
-            IVCKeys.peg.value: finviz.get_peg_ratio(stock_symbol),
+            IVCKeys.peg.value: peg_ratio,
             IVCKeys.market_price.value: market_price,
             IVCKeys.market_delta_cash_flow.value: market_price - intrinsic_value_cash_flow_final,
             IVCKeys.market_delta_net_income.value: market_price - intrinsic_value_net_income_final,

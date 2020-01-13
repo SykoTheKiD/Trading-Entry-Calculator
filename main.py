@@ -15,9 +15,17 @@ def main():
                 if trade_type == "1":
                     swing.main(stock_list)
                 elif trade_type == "2":
+                    override_debt = input(
+                        "Override Debt Values? [Y/N] ").lower()
+                    if override_debt == "y":
+                        debt_override = True
+                    else:
+                        debt_override = False
                     for i in stock_list:
+                        op.print_title_panel("Value Investing Report")
                         value_investing.main(i)
-                        intrinsic_value_calculator.main(i)
+                        op.print_title_panel("Intrinsic Value Report")
+                        intrinsic_value_calculator.main(i, debt_input=debt_override)
             elif trade_type == "3":
                 start_index = input("Enter a start index to begin searching --> ")
                 try:

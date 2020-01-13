@@ -47,6 +47,10 @@ class VIKeys(Enum):
     peg_ratio_check = "PEG Ratio Check"
     years = "Years"
     current_ratio = "Current Ratio"
+    free_cash_flow_revenue = "FCF Revenue"
+    return_on_equity_fcf = "ROE FCF"
+    return_on_equity_net_income = "ROE Net Income"
+    quarters = "Quarters"
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
@@ -105,6 +109,11 @@ def main(stock):
     for i in range(len(income_statements_yrly)):
         years.append(income_statements_yrly[i]['date'])
     years = [year.split('-')[0] for year in years]
+
+    quarters = []
+    for i in range(len(balance_sheets_qrtrly)):
+        quarters.append(balance_sheets_qrtrly[i]['date'])
+
     try:
         op.loading_message("Parsing Net Incomes")
         net_incomes = extract_values_from_statment(
@@ -169,8 +178,8 @@ def main(stock):
     try:
         peg_ratio = get_peg_ratio(stock)
     except FinvizError as e:
+        peg_ratio = None
         op.log_error(e)
-        return
 
     results = {
         VIKeys.company_name.value: get_company_name(stock),
@@ -210,6 +219,10 @@ def main(stock):
         VIKeys.peg_ratio.value: peg_ratio,
         VIKeys.peg_ratio_check.value: evaluate_peg_ratio(peg_ratio),
         VIKeys.years.value: years,
+        VIKeys.free_cash_flow_revenue.value: fcf_revenues,
+        VIKeys.return_on_equity_fcf.value: return_on_equity_fcf,
+        VIKeys.return_on_equity_net_income.value: return_on_equity_net_income,
+        VIKeys.quarters.value: quarters
     }
     op.print_value_investing_report(results, VIKeys)
 

@@ -16,9 +16,12 @@ def clean_boolean(bool):
     else: return "FAIL"
 
 def clean_list(lst, years):
-    if len(lst) >= 5 and len(years) >= 5:
-        ret =f'''{years[0]} -> {lst[0]}, {years[1]} -> {lst[1]}, {years[2]} -> {lst[2]}, {years[3]} -> {lst[3]}, {years[4]} -> {lst[4]}'''
-        return ret
+    ret = ""
+    len_lst = len(lst)
+    if len_lst == len(years):
+        for i in range(len_lst):
+            ret += f"{years[i]} -> {lst[i]}, "
+    return ret
 
 def loading_message(msg):
     if cl.VERBOSITY == 1:
@@ -116,6 +119,7 @@ def print_intrinsic_value(results, IVCKeys):
         Total Cash on Hand: ${results[IVCKeys.total_cash.value]:,}
         EPS 5Y: {results[IVCKeys.eps_5Y.value]*100}%
         Projected Growth after 5Y: {results[IVCKeys.projected_growth.value] * 100}%
+        Current Market Price: --> ${results[IVCKeys.evaluation.value][IVCKeys.market_price.value]} <--
         Projections using Cash flow from Operations:
                 Cash Flow from Ops: ${results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.cash_from_ops.value]:,}
                 Intrinsic Value: --> ${_clean_number(results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
@@ -135,17 +139,20 @@ def print_value_investing_report(results, VIKeys):
         -- Value Investing Report (Details Cover (Last 5Y)) --
         Company: {results[VIKeys.company_name.value]}
         Symbol: {results[VIKeys.symbol.value]}\n
-        Current Ratio: {results[VIKeys.current_ratio.value]}\n
+        Current Ratio: {_clean_number(results[VIKeys.current_ratio.value])}\n
         Cash Flows From Financing: {clean_list(results[VIKeys. cash_flow_from_financing.value], results[VIKeys.years.value])}
         Cash Flows From Investing: {clean_list(results[VIKeys. cash_flow_from_investing.value], results[VIKeys.years.value])}\n
         Free Cash Flows: {clean_list([*map(lambda x: x/1e6, results[VIKeys.free_cash_flow.value])], results[VIKeys.years.value])}
         Free Cash Flow Trend: {clean_boolean(results[VIKeys.free_cash_flow_trend.value])}\n
-        Debt to Equity Ratios: {clean_list([*map(_clean_number, results[VIKeys.debt_to_equity_ratio.value])], results[VIKeys.years.value])}
+        Debt to Equity Ratios: {clean_list([*map(_clean_number, results[VIKeys.debt_to_equity_ratio.value])], results[VIKeys.quarters.value])}
         Debt to Equity Ratio Trend: {clean_boolean(results[VIKeys.debt_to_equity_ratio_trend.value])}\n
         Debt Servicing Ratio (FCF): {clean_list([*map(_clean_number, results[VIKeys.debt_servicing_ratio_free_cash_flow.value])], results[VIKeys.years.value])}
         Debt Servicing Ratio Trend: {clean_list(results[VIKeys.debt_servicing_ratio_free_cash_flow_decision.value], results[VIKeys.years.value])}\n
         Cash Flow from Ops: {clean_list([*map(lambda x: x/1e6, results[VIKeys.cash_flow_from_ops.value])], results[VIKeys.years.value])}
         Cash Flow from Ops Trend: {clean_boolean(results[VIKeys.cash_flow_from_ops_trend.value])}\n
+        Free Cash Flows/ Revenue: {clean_list([*map(_clean_number, results[VIKeys.free_cash_flow_revenue.value])], results[VIKeys.years.value])}\n
+        Return on Equity (Cash Flows): {clean_list([*map(_clean_number, results[VIKeys.return_on_equity_fcf.value])], results[VIKeys.years.value])}\n
+        Return on Equity (Net Incomes): {clean_list([*map(_clean_number, results[VIKeys.return_on_equity_net_income.value])], results[VIKeys.years.value])}\n
         EPS: {clean_list(results[VIKeys.eps.value], results[VIKeys.years.value])}
         EPS Trend: {clean_boolean(results[VIKeys.eps_trend.value])}\n
         Net Incomes: {clean_list([*map(lambda x: x/1e6, results[VIKeys.net_incomes.value])], results[VIKeys.years.value])}
