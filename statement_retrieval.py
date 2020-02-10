@@ -5,6 +5,7 @@ import json
 import ssl
 
 class StatementKeys(Enum):
+    symbol = "symbol"
     financials = "financials"
     total_current_liabilities = "Total current liabilities"
     total_current_assets = "Total current assets"

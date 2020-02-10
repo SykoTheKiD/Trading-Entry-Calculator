@@ -11,7 +11,10 @@ import config_loader as cl
 import output as op
 import argparse
 import datetime
-import holidays
+try:
+    import holidays
+except ModuleNotFoundError:
+    op.log_error("Holidays module not loaded")
 
 import sys
 
