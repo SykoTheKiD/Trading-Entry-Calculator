@@ -2,7 +2,7 @@ from pricing import get_last_price_data, PricePayloadKeys
 from exceptions import DocumentError
 import statement_retrieval as stret
 from exceptions import FinvizError
-from barchart_api import get_debts
+from barchart_api import get_debts, DEFAULT_NO_VALUE
 from fuzzy import fuzzy_increase
 from enum import Enum
 import output as op
@@ -173,6 +173,8 @@ def main(stock_symbol, show=True):
             stret.BALANCE_SHEET, stock_symbol, quarterly=True)
         op.loading_message("Calculating Total Debt")
         total_debt = get_total_debt(balance_sheets_qrtrly)
+        # if total_debt == DEFAULT_NO_VALUE + DEFAULT_NO_VALUE:
+        #     exit()
         # cash and short term investments
         op.loading_message("Calculating Total Cash on Hand")
         total_cash_and_short_term_investments = get_total_cash_on_hand(

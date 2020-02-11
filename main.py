@@ -23,6 +23,8 @@ def main():
             elif trade_type == "3":
                 start_index = input("Enter a start index to begin searching --> ")
                 try:
+                    if start_index == "":
+                        start_index = 0
                     start_index = int(start_index)
                     value_screener.main(start_index)
                 except ValueError:
