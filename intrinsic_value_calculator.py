@@ -2,7 +2,7 @@ from pricing import get_last_price_data, PricePayloadKeys
 from exceptions import DocumentError
 import statement_retrieval as stret
 from exceptions import FinvizError
-from barchart_api import get_debts, DEFAULT_NO_VALUE
+from barchart_api import get_debts
 from fuzzy import fuzzy_increase
 from enum import Enum
 import output as op

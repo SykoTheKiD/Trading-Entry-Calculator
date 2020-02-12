@@ -1,4 +1,8 @@
-# TODO Format file
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+''' Holds a candlestick
+'''
 
 class Stock:
     '''

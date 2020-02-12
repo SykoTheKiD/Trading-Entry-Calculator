@@ -1,4 +1,8 @@
-# TODO Format File
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+''' Fuzzy increasing sequence verifier
+'''
 def fuzzy_increase(statement_attribute, sequence):
     def __check_increasing(seq):
         comp = statement_attribute.operation

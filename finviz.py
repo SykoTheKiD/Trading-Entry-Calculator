@@ -1,4 +1,9 @@
-# TODO Format file
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+''' Custom Finviz.com API that grabs stock information
+'''
+
 from exceptions import FinvizError
 from bs4 import BeautifulSoup
 import requests

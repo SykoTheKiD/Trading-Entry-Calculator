@@ -1,4 +1,9 @@
-# TODO Format file
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+''' Formats outputs to the Terminal
+'''
+
 import config_loader as cl
 import sys
 
@@ -7,7 +12,6 @@ TITLE_LENGTH = 45
 def line_break(length=50):
     print('*' * length)
 
-# TODO: Add number formatting
 def _clean_number(number):
     return round(number, 2)
 

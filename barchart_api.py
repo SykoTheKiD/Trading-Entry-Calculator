@@ -1,7 +1,11 @@
 from requests_html import HTMLSession
+from decorators import retryable
 from bs4 import BeautifulSoup
 import sys
 
+NUM_RETRIES = 3
+
+@retryable(NUM_RETRIES, 2)
 def get_debts(stock_symbol):
     url = f"https://www.barchart.com/stocks/quotes/{stock_symbol}/balance-sheet/quarterly"
     session = HTMLSession()

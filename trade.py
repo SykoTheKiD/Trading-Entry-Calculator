@@ -1,4 +1,8 @@
-# TODO Format file
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+''' Holds a trade and its information
+'''
 class Trade:
     '''
     Holds the calculated entry and exit for a trade
