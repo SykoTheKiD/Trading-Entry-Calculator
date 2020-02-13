@@ -5,7 +5,6 @@ from urllib.error import HTTPError
 from finviz import get_peg_ratio
 from tqdm import tqdm
 import output as op
-from tqdm import tqdm
 import time
 
 MAX_NETWORK_RETRIES  = 5

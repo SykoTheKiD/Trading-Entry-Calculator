@@ -24,7 +24,7 @@ def get_eps_growth_5Y(stock_symbol):
     try:
         return float(eps_5Y[:-1])
     except ValueError:
-        raise FinvizError
+        raise FinvizError("Finviz - EPS not found")
 
 def get_no_shares(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -40,7 +40,7 @@ def get_no_shares(stock_symbol):
         no_shares_float = float(no_shares[:-1]) * factor
         return no_shares_float
     except ValueError:
-        raise FinvizError
+        raise FinvizError("Finviz - No. shares not found")
 
 def get_beta(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -48,7 +48,7 @@ def get_beta(stock_symbol):
     try:
         return float(beta)
     except ValueError:
-        raise FinvizError
+        raise FinvizError("Finviz - Beta value not found")
 
 def get_peg_ratio(stock_symbol):
     stock_table = _get_finviz_stock_table(stock_symbol)
@@ -56,7 +56,7 @@ def get_peg_ratio(stock_symbol):
         peg_ratio = stock_table[13].get_text()
         return float(peg_ratio)
     except (ValueError, IndexError):
-        raise FinvizError
+        raise FinvizError("Finviz - PEG ratio not found")
 
 def get_company_name(stock_symbol):
     page = _get_finviz_stock_page(stock_symbol)

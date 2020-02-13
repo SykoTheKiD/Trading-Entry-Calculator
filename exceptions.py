@@ -5,4 +5,4 @@ class DocumentError(Exception):
 
 class FinvizError(Exception):
     def __init__(self, *args, **kwargs):
-        Exception.__init__(self, "Value not found on Finviz")
+        Exception.__init__(self, *args)
