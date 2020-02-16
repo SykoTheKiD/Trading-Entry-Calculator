@@ -8,7 +8,7 @@ import output as op
 import time
 
 MAX_NETWORK_RETRIES  = 5
-IVC_BUFFER_PERCENT = 500
+IVC_BUFFER_VALUE = 500
 DELAY_TIME = 10
 
 def main(start_index=0):

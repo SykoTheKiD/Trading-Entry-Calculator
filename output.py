@@ -16,8 +16,8 @@ def _clean_number(number):
     return round(number, 2)
 
 def clean_boolean(bool):
-    if bool: return "PASS"
-    else: return "FAIL"
+    if bool: return "Increasing"
+    else: return "Decreasing"
 
 def clean_list(lst, years):
     ret = ""
@@ -35,7 +35,6 @@ def log_verbose(msg):
     if cl.VERBOSITY == 1:
         print(msg)
 
-
 def log_error(msg):
     if cl.VERBOSITY == 1:
         print("ERROR:", msg)
@@ -44,6 +43,16 @@ def print_title_panel(title):
     print("=" * TITLE_LENGTH)
     print("\t" + title)
     print("=" * TITLE_LENGTH)
+
+
+def clean_large_values(values):
+    return [*map(lambda x: x/1e6, values)]
+
+def clean_numbers_in_list(lst):
+    return [*map(_clean_number, lst)]
+
+def check_peg(peg_ratio_bool):
+    return "PASS" if peg_ratio_bool else "FAIL"
 
 def print_swing_report(trades):
     '''
@@ -114,6 +123,8 @@ def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r,delta_2
         Potential Profit: {_clean_number(profit_r2)}
     ''')
 
+def format_to_percent(lst):
+    return [*map(lambda x: str(round(x*100, 2))+"%", lst)]
 
 def print_intrinsic_value(results, IVCKeys):
     print(f'''
@@ -137,36 +148,82 @@ def print_intrinsic_value(results, IVCKeys):
         Net Incomes Increasing: {results[IVCKeys.evaluation.value][IVCKeys.net_income.value]}
     ''')
 
-
 def print_value_investing_report(results, VIKeys):
     print(f''' 
-        -- Value Investing Report (Details Cover (Last 5Y)) --
+        -- Value Investing Report --
         Company: {results[VIKeys.company_name.value]}
-        Symbol: {results[VIKeys.symbol.value]}\n
-        Current Ratio: {_clean_number(results[VIKeys.current_ratio.value])}\n
-        Cash Flows From Financing: {clean_list(results[VIKeys. cash_flow_from_financing.value], results[VIKeys.years.value])}
-        Cash Flows From Investing: {clean_list(results[VIKeys. cash_flow_from_investing.value], results[VIKeys.years.value])}\n
-        Free Cash Flows: {clean_list([*map(lambda x: x/1e6, results[VIKeys.free_cash_flow.value])], results[VIKeys.years.value])}
-        Free Cash Flow Trend: {clean_boolean(results[VIKeys.free_cash_flow_trend.value])}\n
-        Debt to Equity Ratios: {clean_list([*map(_clean_number, results[VIKeys.debt_to_equity_ratio.value])], results[VIKeys.quarters.value])}
-        Debt to Equity Ratio Trend: {clean_boolean(results[VIKeys.debt_to_equity_ratio_trend.value])}\n
-        Debt Servicing Ratio (FCF): {clean_list([*map(_clean_number, results[VIKeys.debt_servicing_ratio_free_cash_flow.value])], results[VIKeys.years.value])}
-        Debt Servicing Ratio Trend: {clean_list(results[VIKeys.debt_servicing_ratio_free_cash_flow_decision.value], results[VIKeys.years.value])}\n
-        Cash Flow from Ops: {clean_list([*map(lambda x: x/1e6, results[VIKeys.cash_flow_from_ops.value])], results[VIKeys.years.value])}
-        Cash Flow from Ops Trend: {clean_boolean(results[VIKeys.cash_flow_from_ops_trend.value])}\n
-        Free Cash Flows/ Revenue: {clean_list([*map(_clean_number, results[VIKeys.free_cash_flow_revenue.value])], results[VIKeys.years.value])}\n
-        Return on Equity (Cash Flows): {clean_list([*map(_clean_number, results[VIKeys.return_on_equity_fcf.value])], results[VIKeys.years.value])}\n
-        Return on Equity (Net Incomes): {clean_list([*map(_clean_number, results[VIKeys.return_on_equity_net_income.value])], results[VIKeys.years.value])}\n
-        EPS: {clean_list(results[VIKeys.eps.value], results[VIKeys.years.value])}
-        EPS Trend: {clean_boolean(results[VIKeys.eps_trend.value])}\n
-        Net Incomes: {clean_list([*map(lambda x: x/1e6, results[VIKeys.net_incomes.value])], results[VIKeys.years.value])}
-        Net Incomes Trend: {clean_boolean(results[VIKeys.net_incomes_trend.value])}\n
-        Revenues: {clean_list([*map(lambda x: x/1e6, results[VIKeys.revenues.value])], results[VIKeys.years.value])}
-        Revenues Trend: {clean_boolean(results[VIKeys.revenues_trend.value])}\n
-        Gross Margin: {clean_list([*map(_clean_number, results[VIKeys.gross_margin.value])], results[VIKeys.years.value])}
-        Gross Margin Trend: {clean_boolean(results[VIKeys.gross_margin_trend.value])}\n
-        Net Profit Margin: {clean_list([*map(_clean_number, results[VIKeys.net_profit_margin.value])], results[VIKeys.years.value])}
-        Net Profit Margin Trend: {clean_boolean(results[VIKeys.net_profit_margin_trend.value])}\n
+        Symbol: {results[VIKeys.symbol.value]}
+
+        --------------------
+        Check if increasing
+        --------------------
+        Revenues: {clean_list(clean_large_values(results[VIKeys.revenues.value]), results[VIKeys.years.value])}
+        Revenues Trend: {clean_boolean(results[VIKeys.revenues_trend.value])}
+
+        Net Incomes: {clean_list(clean_large_values(results[VIKeys.net_incomes.value]), results[VIKeys.years.value])}
+        Net Incomes Trend: {clean_boolean(results[VIKeys.net_incomes_trend.value])}
+
+        Cash Flow from Ops: {clean_list(clean_large_values(results[VIKeys.cash_flow_from_ops.value]), results[VIKeys.years.value])}
+        Cash Flow from Ops Trend: {clean_boolean(results[VIKeys.cash_flow_from_ops_trend.value])}
+
+        ------------------------------------------------------------
+        Check if consistent or growing and around 12-15% or higher
+        ------------------------------------------------------------
+        Return on Equity (Cash Flows): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.return_on_equity_fcf.value])), results[VIKeys.years.value])}
+
+        Return on Equity (Net Incomes): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.return_on_equity_net_income.value])), results[VIKeys.years.value])}
+
+        -----------------
+        Check if above 1
+        -----------------
+        Current Ratio: {_clean_number(results[VIKeys.current_ratio.value])}
+
+        -----------------------------------------------------------------
+        Check if consistent or shrinking and less or equal to competitors
+        -----------------------------------------------------------------
+        <Insert Debt to Equity here>
+
+        -----------------------
+        Check if less than 30%
+        -----------------------
+        Debt Servicing Ratio (FCF): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.debt_servicing_ratio_free_cash_flow.value])), results[VIKeys.years.value])}
+        Debt Servicing Ratio Trend: !!FIX ME!!{clean_list(results[VIKeys.debt_servicing_ratio_free_cash_flow_decision.value], results[VIKeys.years.value])}
+
+        ---------------
+        Check if < 1.6
+        ---------------
         PEG Ratio: {results[VIKeys.peg_ratio.value]}
-        PEG Ratio Check: {clean_boolean(results[VIKeys.peg_ratio_check.value])}\n
+        PEG Ratio Check: {check_peg(results[VIKeys.peg_ratio_check.value])}
+
+        ------------------------------------
+        Check if positive and double digits
+        ------------------------------------
+        EPS 1 Yr:
+        EPS 5 Yr:
+
+        -------------------------------------
+        Check if margins higher than industry
+        -------------------------------------
+        <insert gross margins here>
+        <insert profit margins here>
+
+        -----------------
+        Extra Information
+        -----------------
+        Cash Flows From Financing: {clean_list(results[VIKeys. cash_flow_from_financing.value], results[VIKeys.years.value])}
+        Cash Flows From Investing: {clean_list(results[VIKeys. cash_flow_from_investing.value], results[VIKeys.years.value])}
+
+        Free Cash Flows: {clean_list(clean_large_values(results[VIKeys.free_cash_flow.value]), results[VIKeys.years.value])}
+        Free Cash Flow Trend: {clean_boolean(results[VIKeys.free_cash_flow_trend.value])}
+
+        Free Cash Flows/ Revenue: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.free_cash_flow_revenue.value])), results[VIKeys.years.value])}
+
+        EPS: {clean_list(results[VIKeys.eps.value], results[VIKeys.years.value])}
+        EPS Trend: {clean_boolean(results[VIKeys.eps_trend.value])}
+
+        Gross Margin: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.gross_margin.value])), results[VIKeys.years.value])}
+        Gross Margin Trend: {clean_boolean(results[VIKeys.gross_margin_trend.value])}
+
+        Net Profit Margin: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.net_profit_margin.value])), results[VIKeys.years.value])}
+        Net Profit Margin Trend: {clean_boolean(results[VIKeys.net_profit_margin_trend.value])}
     ''')
