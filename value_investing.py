@@ -1,4 +1,4 @@
-from finviz import get_peg_ratio, get_company_name
+from finviz import get_peg_ratio, get_company_name, get_eps_growth
 from exceptions import DocumentError, FinvizError
 from operator import truediv, gt, le
 import statement_retrieval as stret
@@ -47,10 +47,14 @@ class VIKeys(Enum):
     peg_ratio_check = "PEG Ratio Check"
     years = "Years"
     current_ratio = "Current Ratio"
+    current_ratio_check = "Current Ratio Check"
     free_cash_flow_revenue = "FCF Revenue"
     return_on_equity_fcf = "ROE FCF"
     return_on_equity_net_income = "ROE Net Income"
     quarters = "Quarters"
+    eps_current = "EPS Current"
+    eps_1yr = "EPS 1 Yr"
+    eps_5yr = "EPS 5 Yr"
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
@@ -161,6 +165,7 @@ def main(stock):
     op.loading_message("Calculating Current Ratio")
     current_ratio = calculate_ttm_ratio(
         total_current_assets, total_current_liabilities)
+    current_ratio_check = current_ratio >= 1
     op.loading_message("Calculating Debt to Equity Ratio")
     de_ratios = calculate_ratios(total_liabilities, total_shareholders_equity)
     op.loading_message("Calculating Debt Servicing Ratio")
@@ -181,10 +186,29 @@ def main(stock):
         peg_ratio = None
         op.log_error(e)
 
+    try:
+        eps_current = get_eps_growth(stock, 0)
+    except FinvizError as e:
+        eps_current = None
+        op.log_error(e)
+
+    try:
+        eps_1yr = get_eps_growth(stock, 1)
+    except FinvizError as e:
+        eps_1yr = None
+        op.log_error(e)
+    
+    try:
+        eps_5yr = get_eps_growth(stock)
+    except FinvizError as e:
+        eps_5yr = None
+        op.log_error(e)
+
     results = {
         VIKeys.company_name.value: get_company_name(stock),
         VIKeys.symbol.value: stock,
         VIKeys.current_ratio.value: current_ratio,
+        VIKeys.current_ratio_check.value: current_ratio_check,
         VIKeys.cash_flow_from_financing.value: calculate_flow_graph(
             cash_from_investments, CASH_FLOW_FROM_FINANCING_THRESHOLD),
         VIKeys.cash_flow_from_investing.value: calculate_flow_graph(
@@ -222,7 +246,10 @@ def main(stock):
         VIKeys.free_cash_flow_revenue.value: fcf_revenues,
         VIKeys.return_on_equity_fcf.value: return_on_equity_fcf,
         VIKeys.return_on_equity_net_income.value: return_on_equity_net_income,
-        VIKeys.quarters.value: quarters
+        VIKeys.quarters.value: quarters,
+        VIKeys.eps_current.value: eps_current,
+        VIKeys.eps_1yr.value: eps_1yr,
+        VIKeys.eps_5yr.value: eps_5yr
     }
     op.print_value_investing_report(results, VIKeys)
 

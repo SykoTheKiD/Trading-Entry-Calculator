@@ -184,7 +184,7 @@ def main(stock_symbol, show=True):
         return
 
     try:
-        projected_growth_5Y = finviz.get_eps_growth_5Y(stock_symbol)
+        projected_growth_5Y = finviz.get_eps_growth(stock_symbol)
         projected_growth_after_5Y = projected_growth_5Y / 2 if projected_growth_5Y != None else 0
 
         projected_growth_5Y = projected_growth_5Y / 100 if projected_growth_5Y != None else 0

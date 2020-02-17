@@ -51,7 +51,7 @@ def clean_large_values(values):
 def clean_numbers_in_list(lst):
     return [*map(_clean_number, lst)]
 
-def check_peg(peg_ratio_bool):
+def check_single_bool_test(peg_ratio_bool):
     return "PASS" if peg_ratio_bool else "FAIL"
 
 def print_swing_report(trades):
@@ -177,29 +177,31 @@ def print_value_investing_report(results, VIKeys):
         Check if above 1
         -----------------
         Current Ratio: {_clean_number(results[VIKeys.current_ratio.value])}
+        Current Ratio Test: {check_single_bool_test(results[VIKeys.current_ratio_check.value])}
 
         -----------------------------------------------------------------
         Check if consistent or shrinking and less or equal to competitors
         -----------------------------------------------------------------
-        <Insert Debt to Equity here>
+        Debt to Equity Ratios: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.debt_to_equity_ratio.value])), results[VIKeys.years.value])}
+        <insert debt to equity ratio industry>
 
         -----------------------
         Check if less than 30%
         -----------------------
         Debt Servicing Ratio (FCF): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.debt_servicing_ratio_free_cash_flow.value])), results[VIKeys.years.value])}
-        Debt Servicing Ratio Trend: !!FIX ME!!{clean_list(results[VIKeys.debt_servicing_ratio_free_cash_flow_decision.value], results[VIKeys.years.value])}
 
         ---------------
         Check if < 1.6
         ---------------
         PEG Ratio: {results[VIKeys.peg_ratio.value]}
-        PEG Ratio Check: {check_peg(results[VIKeys.peg_ratio_check.value])}
+        PEG Ratio Check: {check_single_bool_test(results[VIKeys.peg_ratio_check.value])}
 
         ------------------------------------
         Check if positive and double digits
         ------------------------------------
-        EPS 1 Yr:
-        EPS 5 Yr:
+        EPS Current Yr: {results[VIKeys.eps_current.value]}%
+        EPS 1 Yr: {results[VIKeys.eps_1yr.value]}%
+        EPS 5 Yr: {results[VIKeys.eps_5yr.value]}%
 
         -------------------------------------
         Check if margins higher than industry

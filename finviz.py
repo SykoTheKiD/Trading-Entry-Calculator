@@ -10,19 +10,23 @@ import requests
 
 def _get_finviz_stock_page(stock_symbol):
     page = requests.get(f"https://finviz.com/quote.ashx?t={stock_symbol}")
-    soup = BeautifulSoup(page.content, 'html.parser')
-    return soup
+    return BeautifulSoup(page.content, 'html.parser')
 
 def _get_finviz_stock_table(stock_symbol):
     page = _get_finviz_stock_page(stock_symbol)
-    page_elements = page.find_all('td', class_="snapshot-td2")
-    return page_elements
+    return page.find_all('td', class_="snapshot-td2")
 
-def get_eps_growth_5Y(stock_symbol):
+def get_eps_growth(stock_symbol, range=5):
+    if range == 0:
+        index = 20
+    elif range == 1:
+        index = 26
+    else:
+        index = 32
     stock_table = _get_finviz_stock_table(stock_symbol)
-    eps_5Y = stock_table[32].get_text()
+    eps_growth = stock_table[index].get_text()
     try:
-        return float(eps_5Y[:-1])
+        return float(eps_growth[:-1])
     except ValueError:
         raise FinvizError("Finviz - EPS not found")
 
