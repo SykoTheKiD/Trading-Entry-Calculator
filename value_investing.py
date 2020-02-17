@@ -6,6 +6,7 @@ from fuzzy import fuzzy_increase
 from enum import Enum
 import urllib.request
 import output as op
+import zacks_api
 import operator
 import json
 
@@ -55,6 +56,12 @@ class VIKeys(Enum):
     eps_current = "EPS Current"
     eps_1yr = "EPS 1 Yr"
     eps_5yr = "EPS 5 Yr"
+    company_npm = "Company NPM"
+    industry_npm = "Industry NPM"
+    roe_company = "ROE company"
+    roe_industry = "ROE Industry"
+    dtoe_company = "D to E Company"
+    dtoe_industry = "D to E Industry" 
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
@@ -204,6 +211,8 @@ def main(stock):
         eps_5yr = None
         op.log_error(e)
 
+    company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry = zacks_api.get_industry_comparisons(stock)
+
     results = {
         VIKeys.company_name.value: get_company_name(stock),
         VIKeys.symbol.value: stock,
@@ -249,7 +258,13 @@ def main(stock):
         VIKeys.quarters.value: quarters,
         VIKeys.eps_current.value: eps_current,
         VIKeys.eps_1yr.value: eps_1yr,
-        VIKeys.eps_5yr.value: eps_5yr
+        VIKeys.eps_5yr.value: eps_5yr,
+        VIKeys.company_npm.value: company_npm,
+        VIKeys.industry_npm.value: industry_npm,
+        VIKeys.roe_company.value: roe_company,
+        VIKeys.roe_industry.value: roe_industry,
+        VIKeys.dtoe_company.value: dtoe_company,
+        VIKeys.dtoe_industry.value: dtoe_industry
     }
     op.print_value_investing_report(results, VIKeys)
 

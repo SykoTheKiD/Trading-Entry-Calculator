@@ -173,6 +173,9 @@ def print_value_investing_report(results, VIKeys):
 
         Return on Equity (Net Incomes): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.return_on_equity_net_income.value])), results[VIKeys.years.value])}
 
+        Return on Equity Company: {results[VIKeys.roe_company.value]}
+        Return on Equity Industry: {results[VIKeys.roe_industry.value]}
+        
         -----------------
         Check if above 1
         -----------------
@@ -183,7 +186,9 @@ def print_value_investing_report(results, VIKeys):
         Check if consistent or shrinking and less or equal to competitors
         -----------------------------------------------------------------
         Debt to Equity Ratios: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.debt_to_equity_ratio.value])), results[VIKeys.years.value])}
-        <insert debt to equity ratio industry>
+
+        Debt to Equity Company: {results[VIKeys.dtoe_company.value]}
+        Debt to Equity Industry: {results[VIKeys.dtoe_industry.value]}
 
         -----------------------
         Check if less than 30%
@@ -206,8 +211,8 @@ def print_value_investing_report(results, VIKeys):
         -------------------------------------
         Check if margins higher than industry
         -------------------------------------
-        <insert gross margins here>
-        <insert profit margins here>
+        Net Profit Margin Company: {results[VIKeys.company_npm.value]}
+        Net Profit Margin Industry: {results[VIKeys.industry_npm.value]}
 
         -----------------
         Extra Information
