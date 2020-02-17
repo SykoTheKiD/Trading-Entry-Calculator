@@ -44,9 +44,8 @@ def print_title_panel(title):
     print("\t" + title)
     print("=" * TITLE_LENGTH)
 
-
 def clean_large_values(values):
-    return [*map(lambda x: x/1e6, values)]
+    return [*map(lambda x: f"${x/1e6:,}0", values)]
 
 def clean_numbers_in_list(lst):
     return [*map(_clean_number, lst)]
