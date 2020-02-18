@@ -1,6 +1,8 @@
 from requests_html import HTMLSession
+from decorators import retryable
 from bs4 import BeautifulSoup
 
+@retryable
 def get_industry_comparisons(stock):
     url = f"https://www.zacks.com/stock/research/{stock}/industry-comparison"
     sess = HTMLSession()

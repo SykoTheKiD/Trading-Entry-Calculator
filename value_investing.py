@@ -267,7 +267,3 @@ def main(stock):
         VIKeys.dtoe_industry.value: dtoe_industry
     }
     op.print_value_investing_report(results, VIKeys)
-
-# income statement
-# TODO gross profit higher than industry
-# TODO net profit higher than industry
