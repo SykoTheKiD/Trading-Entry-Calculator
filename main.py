@@ -5,7 +5,7 @@ import output as op
 import swing
 
 
-def main():
+def main() -> None:
     try:
         while True:
             op.print_title_panel("Welcome to TradingPro 2020")

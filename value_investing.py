@@ -7,6 +7,7 @@ import statement_retrieval as stret
 from exceptions import DocumentError, FinvizError
 from finviz import get_peg_ratio, get_company_name, get_eps_growth
 from fuzzy import fuzzy_increase
+import sys
 
 
 class FlowThreshold:
@@ -65,11 +66,11 @@ class VIKeys(Enum):
     dtoe_industry = "D to E Industry"
 
 
-def calculate_ratios(lst1, lst2):
+def calculate_ratios(lst1: list, lst2: list) -> list:
     return [*map(truediv, lst1, lst2)]
 
 
-def calculate_ttm_ratio(lst1, lst2):
+def calculate_ttm_ratio(lst1: list, lst2: list) -> float:
     if len(lst1) > 0 and len(lst2) > 0:
         ttm1 = lst1[-1]
         ttm2 = lst2[-1]
@@ -77,7 +78,7 @@ def calculate_ttm_ratio(lst1, lst2):
     return -1
 
 
-def calculate_flow_graph(flows, flow_threshold):
+def calculate_flow_graph(flows: list, flow_threshold: float) -> list:
     ret = []
     for i in range(len(flows)):
         if flow_threshold.operation(i, flow_threshold.threshold):
@@ -87,7 +88,7 @@ def calculate_flow_graph(flows, flow_threshold):
     return ret
 
 
-def extract_values_from_statment(statements, statement_attribute):
+def extract_values_from_statment(statements: list, statement_attribute: object) -> list:
     float_vals = []
     try:
         for i in range(len(statements)):
@@ -99,16 +100,27 @@ def extract_values_from_statment(statements, statement_attribute):
         raise DocumentError
 
 
-def evaluate_peg_ratio(peg_ratio):
+def evaluate_peg_ratio(peg_ratio: float) -> bool:
     if peg_ratio is None:
         return None
     return peg_ratio <= 1.6
 
 
-def main(stock):
-    global cash_from_investments, cash_from_financing, cash_flow_from_ops, eps_diluted, gross_margin, \
-        net_profit_margins, net_incomes, interest_expense, free_cash_flows, revenues, total_shareholders_equity, \
-        total_liabilities, total_current_liabilities, total_current_assets
+def main(stock: str) -> None:
+    cash_from_investments = sys.maxsize
+    cash_from_financing = sys.maxsize
+    cash_flow_from_ops = sys.maxsize
+    eps_diluted = sys.maxsize
+    gross_margin = sys.maxsize
+    net_profit_margins = sys.maxsize
+    net_incomes = sys.maxsize
+    interest_expense = sys.maxsize
+    free_cash_flows = sys.maxsize
+    revenues = sys.maxsize
+    total_shareholders_equity = sys.maxsize
+    total_liabilities = sys.maxsize
+    total_current_liabilities = sys.maxsize
+    total_current_assets = sys.maxsize
     stock = stock.upper()
     try:
         op.loading_message("Fetching Yearly Income Statements")

@@ -7,7 +7,7 @@ import output as op
 WAIT_TIME = 5
 
 
-def retryable(max_tries):
+def retryable(max_tries: int):
     def outter(func):
         @wraps(func)
         def inner(*args, **kwargs):

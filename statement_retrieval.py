@@ -80,7 +80,7 @@ INTEREST_EXPENSE_ATTR = StatementAttribute(StatementKeys.net_interest_expense.va
 DEBT_TO_EQUITY_RATIO_ATTR = StatementAttribute(None, None, operator.le)
 
 
-def get_financial_statement(statement_type, stocks, quarterly=False):
+def get_financial_statement(statement_type: str, stocks: list, quarterly=False) -> dict:
     query_url = f"https://financialmodelingprep.com/api/v3/financials/{statement_type}/{stocks}"
     if quarterly:
         query_url += "?period=quarter"

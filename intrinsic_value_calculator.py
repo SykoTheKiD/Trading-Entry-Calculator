@@ -39,7 +39,7 @@ class IVCKeys(Enum):
     cash_per_share = "Cash Per Share"
 
 
-def get_discount_from_beta(discount_rate):
+def get_discount_from_beta(discount_rate: float) -> float:
     rate = round(discount_rate, 1)
     if rate <= 0.8:
         return 0.05
@@ -59,7 +59,7 @@ def get_discount_from_beta(discount_rate):
         return 0.09
 
 
-def get_cash_flows(cash_flow_statements):
+def get_cash_flows(cash_flow_statements: list) -> list:
     try:
         statements = cash_flow_statements[stret.StatementKeys.financials.value]
     except KeyError as e:
@@ -74,7 +74,7 @@ def get_cash_flows(cash_flow_statements):
             raise e
 
 
-def get_net_incomes(income_statements):
+def get_net_incomes(income_statements: list) -> list:
     try:
         statements = income_statements[stret.StatementKeys.financials.value]
     except KeyError as e:
@@ -89,7 +89,7 @@ def get_net_incomes(income_statements):
             raise e
 
 
-def get_total_debt(qrtrly_balance_sheets):
+def get_total_debt(qrtrly_balance_sheets: list) -> list:
     try:
         stock_symbol = qrtrly_balance_sheets[stret.StatementKeys.symbol.value]
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
@@ -99,7 +99,7 @@ def get_total_debt(qrtrly_balance_sheets):
     return short_term_debt + long_term_debt
 
 
-def get_total_cash_on_hand(qrtrly_balance_sheets):
+def get_total_cash_on_hand(qrtrly_balance_sheets: list) -> list:
     try:
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
     except KeyError as e:
@@ -110,7 +110,7 @@ def get_total_cash_on_hand(qrtrly_balance_sheets):
         raise e
 
 
-def get_projected_cash_flow(current_cash, initial_growth, projected_growth):
+def get_projected_cash_flow(current_cash: float, initial_growth: float, projected_growth: float) -> list:
     curr = current_cash
     projected_growths = []
     for i in range(NUM_YEARS_PROJECTED):
@@ -124,7 +124,7 @@ def get_projected_cash_flow(current_cash, initial_growth, projected_growth):
     return projected_growths
 
 
-def calculate_discount_rates(inital_discount_rate):
+def calculate_discount_rates(inital_discount_rate: float) -> list:
     discount_rates = []
     for i in range(NUM_YEARS_PROJECTED):
         rate = 1 / (1 + inital_discount_rate) ** (i + 1)
@@ -133,7 +133,7 @@ def calculate_discount_rates(inital_discount_rate):
     return discount_rates
 
 
-def calculate_discounted_values(projected_cash_flows, discount_rates):
+def calculate_discounted_values(projected_cash_flows: list, discount_rates: list) -> list:
     assert len(projected_cash_flows) == len(discount_rates)
     discounted_values = []
     for i in range(len(discount_rates)):
@@ -141,8 +141,8 @@ def calculate_discounted_values(projected_cash_flows, discount_rates):
     return discounted_values
 
 
-def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total_debt,
-                              total_cash_and_short_term_investments):
+def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares: float, total_debt: float,
+                              total_cash_and_short_term_investments: float) -> dict:
     intrinsic_value_prior = projected_growth_sum / no_outstanding_shares
     debt_per_share = total_debt / no_outstanding_shares
     cash_per_share = total_cash_and_short_term_investments / no_outstanding_shares
@@ -153,7 +153,7 @@ def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total
             IVCKeys.intrinsic_value.value: intrinsic_value}
 
 
-def main(stock_symbol, show=True):
+def main(stock_symbol: str, show=True) -> None:
     stock_symbol = stock_symbol.upper()
     op.loading_message(f"Calculating Intrinsic Value for: {stock_symbol}")
     op.loading_message("Fetching Yearly Income Statements")

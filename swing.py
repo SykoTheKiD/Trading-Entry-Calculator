@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 
 
 # TODO: Add break for large candles
-def get_price_padding(closing_price):
+def get_price_padding(closing_price: float) -> float:
     """
     Calculate how far above and below to place your entry/stop
     """
@@ -35,7 +35,7 @@ def get_price_padding(closing_price):
         return 0.1
 
 
-def calculate_entry_exits(stock):
+def calculate_entry_exits(stock: str) -> object:
     """
     Calculate the entry, stop and exit prices for a given stock
     """
@@ -72,7 +72,7 @@ def calculate_entry_exits(stock):
     return trade
 
 
-def get_last_trading_day():
+def get_last_trading_day() -> object:
     now = datetime.datetime.now()
     # If current day is a weekend move back current day to closest previous trading day
     us_holidays = holidays.UnitedStates()
@@ -86,7 +86,7 @@ def get_last_trading_day():
     return now
 
 
-def grab_prices(symbol):
+def grab_prices(symbol: str) -> object:
     """
     Get the current price for a given symbol
     """
@@ -109,7 +109,7 @@ def grab_prices(symbol):
         print("JSON Response from AlphaVantage Corrupt")
 
 
-def main(symbols):
+def main(symbols: list) -> None:
     trades = []
     for symbol in symbols:
         try:

@@ -6,7 +6,7 @@
 
 
 def fuzzy_increase(statement_attribute, sequence):
-    def __check_increasing(seq):
+    def __check_increasing(seq: list) -> bool:
         comp = statement_attribute.operation
         count = 0
         max_count = 1

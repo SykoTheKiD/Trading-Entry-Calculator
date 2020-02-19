@@ -19,7 +19,7 @@ class PricePayloadKeys(Enum):
     change_percent = "change_percent"
 
 
-def get_last_price_data(stock_symbol):
+def get_last_price_data(stock_symbol: str) -> dict:
     # SSL bypass hardcoded, it's fine because it's a simple API call with no personal details
     with urllib.request.urlopen(
             f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock_symbol}&apikey={cl.SWING_API_KEY}",

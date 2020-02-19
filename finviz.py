@@ -10,17 +10,17 @@ from bs4 import BeautifulSoup
 from exceptions import FinvizError
 
 
-def _get_finviz_stock_page(stock_symbol):
+def _get_finviz_stock_page(stock_symbol: str) -> BeautifulSoup:
     page = requests.get(f"https://finviz.com/quote.ashx?t={stock_symbol}")
     return BeautifulSoup(page.content, 'html.parser')
 
 
-def _get_finviz_stock_table(stock_symbol):
+def _get_finviz_stock_table(stock_symbol: str) -> [str]:
     page = _get_finviz_stock_page(stock_symbol)
     return page.find_all('td', class_="snapshot-td2")
 
 
-def get_eps_growth(stock_symbol, range=5):
+def get_eps_growth(stock_symbol: str, range=5) -> float:
     if range == 0:
         index = 20
     elif range == 1:
@@ -35,7 +35,7 @@ def get_eps_growth(stock_symbol, range=5):
         raise FinvizError("Finviz - EPS not found")
 
 
-def get_no_shares(stock_symbol):
+def get_no_shares(stock_symbol: str) -> float:
     stock_table = _get_finviz_stock_table(stock_symbol)
     try:
         no_shares = stock_table[4].get_text()
@@ -52,7 +52,7 @@ def get_no_shares(stock_symbol):
         raise FinvizError("Finviz - No. shares not found")
 
 
-def get_beta(stock_symbol):
+def get_beta(stock_symbol: str) -> float:
     stock_table = _get_finviz_stock_table(stock_symbol)
     beta = stock_table[41].get_text()
     try:
@@ -61,7 +61,7 @@ def get_beta(stock_symbol):
         raise FinvizError("Finviz - Beta value not found")
 
 
-def get_peg_ratio(stock_symbol):
+def get_peg_ratio(stock_symbol: str) -> float:
     stock_table = _get_finviz_stock_table(stock_symbol)
     try:
         peg_ratio = stock_table[13].get_text()
@@ -70,7 +70,7 @@ def get_peg_ratio(stock_symbol):
         raise FinvizError("Finviz - PEG ratio not found")
 
 
-def get_company_name(stock_symbol):
+def get_company_name(stock_symbol: str) -> str:
     page = _get_finviz_stock_page(stock_symbol)
     page_elements = page.find_all('a', class_="tab-link")
     return page_elements[12].get_text()

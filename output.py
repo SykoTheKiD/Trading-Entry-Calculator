@@ -10,22 +10,22 @@ import sys
 TITLE_LENGTH = 45
 
 
-def line_break(length=50):
+def line_break(length=50) -> None:
     print('*' * length)
 
 
-def _clean_number(number):
+def _clean_number(number: float) -> float:
     return round(number, 2)
 
 
-def clean_boolean(bool):
-    if bool:
+def clean_boolean(boolean: bool) -> str:
+    if boolean:
         return "Increasing"
     else:
         return "Decreasing"
 
 
-def clean_list(lst, years):
+def clean_list(lst: list, years: list) -> str:
     ret = ""
     len_lst = len(lst)
     if len_lst == len(years):
@@ -34,40 +34,40 @@ def clean_list(lst, years):
     return ret
 
 
-def loading_message(msg):
+def loading_message(msg: str) -> None:
     if cl.VERBOSITY == 1:
         print(msg, "...")
 
 
-def log_verbose(msg):
+def log_verbose(msg: str) -> None:
     if cl.VERBOSITY == 1:
         print(msg)
 
 
-def log_error(msg):
+def log_error(msg: str) -> None:
     if cl.VERBOSITY == 1:
         print("ERROR:", msg)
 
 
-def print_title_panel(title):
+def print_title_panel(title: str) -> None:
     print("=" * TITLE_LENGTH)
     print("\t" + title)
     print("=" * TITLE_LENGTH)
 
 
-def clean_large_values(values):
+def clean_large_values(values: list) -> list:
     return [*map(lambda x: f"${x / 1e6:,}0", values)]
 
 
-def clean_numbers_in_list(lst):
+def clean_numbers_in_list(lst: list) -> list:
     return [*map(_clean_number, lst)]
 
 
-def check_single_bool_test(peg_ratio_bool):
+def check_single_bool_test(peg_ratio_bool: bool) -> str:
     return "PASS" if peg_ratio_bool else "FAIL"
 
 
-def print_swing_report(trades):
+def print_swing_report(trades: list) -> None:
     '''
     Summarize the trades and the costs
     '''
@@ -120,8 +120,8 @@ Total Number of Trades: {num_trades}
     ''')
 
 
-def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r, delta_2r, delta_3r, profit_r2,
-                      break_even_price, break_even_differential):
+def print_swing_trade(stock: str, capital_at_risk: int, trade: object, delta_1r: int, delta_15r: int, delta_2r: int, delta_3r: int, profit_r2: int,
+                      break_even_price: int, break_even_differential: int) -> None:
     print(f'''
         SYMBOL: {stock.symbol}
 
@@ -138,11 +138,11 @@ def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r, delta_
     ''')
 
 
-def format_to_percent(lst):
+def format_to_percent(lst: list) -> list:
     return [*map(lambda x: str(round(x * 100, 2)) + "%", lst)]
 
 
-def print_intrinsic_value(results, IVCKeys):
+def print_intrinsic_value(results: list, IVCKeys: object) -> None:
     print(f'''
         Company: {results[IVCKeys.company_name.value]}
         Symbol: {results[IVCKeys.symbol.value]}
@@ -168,7 +168,7 @@ def print_intrinsic_value(results, IVCKeys):
     ''')
 
 
-def print_value_investing_report(results, VIKeys):
+def print_value_investing_report(results: list, VIKeys: object) -> None:
     print(f''' 
         -- Value Investing Report --
         Company: {results[VIKeys.company_name.value]}

@@ -12,7 +12,7 @@ IVC_BUFFER_VALUE = 500
 DELAY_TIME = 10
 
 
-def main(start_index=0):
+def main(start_index=0) -> None:
     op.print_title_panel("Value Screener Pro")
     all_stocks = get_all_stocks()
     error_stocks = 0

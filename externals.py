@@ -15,8 +15,13 @@ def get_table_rows_from_url(url):
     return rows
 
 
-def get_industry_comparisons(stock: str):
-    global company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry
+def get_industry_comparisons(stock: str) -> (str, str, str, str, str, str):
+    company_npm = None
+    industry_npm = None
+    roe_company = None
+    roe_industry = None
+    toe_company = None
+    dtoe_industry = None
     url = f"https://www.zacks.com/stock/research/{stock}/industry-comparison"
     rows = get_table_rows_from_url(url)
     for i in range(len(rows)):
@@ -35,7 +40,7 @@ def get_industry_comparisons(stock: str):
     return company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry
 
 
-def get_company_debts(stock_symbol: str):
+def get_company_debts(stock_symbol: str) -> (float, float):
     url = f"https://www.barchart.com/stocks/quotes/{stock_symbol}/balance-sheet/quarterly"
     rows = get_table_rows_from_url(url)
     short_term_debt = 0
