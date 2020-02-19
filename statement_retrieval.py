@@ -4,6 +4,7 @@ import operator
 import json
 import ssl
 
+
 class StatementKeys(Enum):
     symbol = "symbol"
     financials = "financials"
@@ -29,6 +30,7 @@ class StatementKeys(Enum):
     cash_from_financing = "Financing Cash Flow"
     net_interest_expense = "Interest Expense"
 
+
 class StatementAttribute:
     def __init__(self, attribute_name, attribute_document, operation):
         self.attribute_name = attribute_name
@@ -40,6 +42,7 @@ class StatementAttribute:
 
     def __str__(self):
         return self.attribute_name
+
 
 CASH_FLOW_STATEMENT = "cash-flow-statement"
 BALANCE_SHEET = "balance-sheet-statement"
@@ -70,7 +73,8 @@ TOTAL_CURRENT_LIABILITIES_ATTR = StatementAttribute(
 TOTAL_SHAREHOLDER_EQUITY_ATTR = StatementAttribute(
     StatementKeys.total_shareholder_equity.value, BALANCE_SHEET, operator.ge)
 FREE_CASH_FLOWS_ATTR = StatementAttribute(StatementKeys.free_cash_flows.value, CASH_FLOW_STATEMENT, operator.ge)
-CASH_FROM_INVESTMENTS_ATTR = StatementAttribute(StatementKeys.cash_from_investments.value, CASH_FLOW_STATEMENT, operator.ge)
+CASH_FROM_INVESTMENTS_ATTR = StatementAttribute(StatementKeys.cash_from_investments.value, CASH_FLOW_STATEMENT,
+                                                operator.ge)
 CASH_FROM_FINANCING_ATTR = StatementAttribute(StatementKeys.cash_from_financing.value, CASH_FLOW_STATEMENT, operator.ge)
 INTEREST_EXPENSE_ATTR = StatementAttribute(StatementKeys.net_interest_expense.value, INCOME_STATEMENT, operator.ge)
 DEBT_TO_EQUITY_RATIO_ATTR = StatementAttribute(None, None, operator.le)

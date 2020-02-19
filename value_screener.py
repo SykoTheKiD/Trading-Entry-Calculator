@@ -7,9 +7,10 @@ from tqdm import tqdm
 import output as op
 import time
 
-MAX_NETWORK_RETRIES  = 5
+MAX_NETWORK_RETRIES = 5
 IVC_BUFFER_VALUE = 500
 DELAY_TIME = 10
+
 
 def main(start_index=0):
     op.print_title_panel("Value Screener Pro")
@@ -22,7 +23,14 @@ def main(start_index=0):
         try:
             if get_peg_ratio(symbol) <= 1.7:
                 results = ivc.main(symbol, show=False)
-                if ((results[ivc.IVCKeys.evaluation.value][ivc.IVCKeys.market_delta_cash_flow.value] < IVC_BUFFER_VALUE or results[ivc.IVCKeys.evaluation.value][ivc.IVCKeys.market_delta_net_income.value] < IVC_BUFFER_VALUE) or (results[ivc.IVCKeys.evaluation.value][ivc.IVCKeys.market_delta_cash_flow.value] > IVC_BUFFER_VALUE or results[ivc.IVCKeys.evaluation.value][ivc.IVCKeys.market_delta_net_income.value] > IVC_BUFFER_VALUE)):
+                if ((results[ivc.IVCKeys.evaluation.value][
+                         ivc.IVCKeys.market_delta_cash_flow.value] < IVC_BUFFER_VALUE or
+                     results[ivc.IVCKeys.evaluation.value][
+                         ivc.IVCKeys.market_delta_net_income.value] < IVC_BUFFER_VALUE) or (
+                        results[ivc.IVCKeys.evaluation.value][
+                            ivc.IVCKeys.market_delta_cash_flow.value] > IVC_BUFFER_VALUE or
+                        results[ivc.IVCKeys.evaluation.value][
+                            ivc.IVCKeys.market_delta_net_income.value] > IVC_BUFFER_VALUE)):
                     op.print_intrinsic_value(results, ivc.IVCKeys)
         except (FinvizError, DocumentError, TypeError) as e:
             op.log_error(e)

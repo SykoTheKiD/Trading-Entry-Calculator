@@ -1,9 +1,11 @@
-from functools import wraps
-import output as op
+## TODO Format file
 import time
-import sys
+from functools import wraps
+
+import output as op
 
 WAIT_TIME = 5
+
 
 def retryable(max_tries):
     def outter(func):
@@ -17,5 +19,7 @@ def retryable(max_tries):
                     op.log_error(f"Decorator error --> {func.__name__}")
                     num_tries = num_tries + 1
                     time.sleep(WAIT_TIME)
+
         return inner
+
     return outter

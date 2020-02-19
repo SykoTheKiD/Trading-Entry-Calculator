@@ -3,9 +3,11 @@ from enum import Enum
 import json
 import ssl
 
+
 class StockListKeys(Enum):
     symbol_list = "symbolsList"
     symbol = "symbol"
+
 
 def get_all_stocks():
     query_url = "https://financialmodelingprep.com/api/v3/company/stock/list"

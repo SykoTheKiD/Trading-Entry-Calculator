@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-''' My personal swing trading entry formula
-'''
+""" My personal swing trading entry formula
+"""
 from pricing import get_last_price_data, PricePayloadKeys
 from stock import Stock
 from trade import Trade
@@ -11,18 +11,18 @@ import config_loader as cl
 import output as op
 import argparse
 import datetime
+
 try:
     import holidays
 except ModuleNotFoundError:
     op.log_error("Holidays module not loaded")
 
-import sys
 
-## TODO: Add break for large candles
+# TODO: Add break for large candles
 def get_price_padding(closing_price):
-    '''
+    """
     Calculate how far above and below to place your entry/stop
-    '''
+    """
     if closing_price < 5:
         return 0.01
     elif 5 <= closing_price < 10:
@@ -34,22 +34,23 @@ def get_price_padding(closing_price):
     else:
         return 0.1
 
+
 def calculate_entry_exits(stock):
-    '''
+    """
     Calculate the entry, stop and exit prices for a given stock
-    '''
+    """
     high = stock.high
     low = stock.low
     close = stock.close
-    if(low > high):
+    if low > high:
         raise ValueError('Low > High')
-    if(not (low <= close <= high)):
+    if not (low <= close <= high):
         raise ValueError('Low < Close < High not met', high, low, close)
 
     capital_at_risk = cl.CURRENT_CAPITAL * 0.01
     entry = high + get_price_padding(close)
-    stop = low  - get_price_padding(close)
-    
+    stop = low - get_price_padding(close)
+
     delta_1r = entry - stop
     delta_15r = delta_1r * 1.5
     delta_2r = delta_1r * 2
@@ -58,41 +59,44 @@ def calculate_entry_exits(stock):
     r15_exit = entry + delta_15r
     r2_exit = entry + delta_2r
     r3_exit = entry + delta_3r
-    
-    pos_size = round(capital_at_risk/delta_1r)
+
+    pos_size = round(capital_at_risk / delta_1r)
     break_even_price = entry + cl.COMMISSION_COST / pos_size
     break_even_differential = break_even_price - entry
     profit_r2 = delta_2r * pos_size
 
     trade = Trade(stock, pos_size, entry, stop, {
-                  1: entry+delta_1r, 15: r15_exit, 2: r2_exit, 3: r3_exit})
-    op.print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r, delta_2r, delta_3r, profit_r2, break_even_price, break_even_differential)
+        1: entry + delta_1r, 15: r15_exit, 2: r2_exit, 3: r3_exit})
+    op.print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r, delta_2r, delta_3r, profit_r2,
+                         break_even_price, break_even_differential)
     return trade
+
 
 def get_last_trading_day():
     now = datetime.datetime.now()
-    ## If current day is a weekend move back current day to closest previous trading day
+    # If current day is a weekend move back current day to closest previous trading day
     us_holidays = holidays.UnitedStates()
-    while(5 <= now.weekday() <= 6 and now.weekday() in us_holidays):
+    while 5 <= now.weekday() <= 6 and now.weekday() in us_holidays:
         now = now - datetime.timedelta(days=1)
 
     time = now.time()
-    if datetime.datetime.now() == now and time.hour <=9 and time.minute < 30:
+    if datetime.datetime.now() == now and time.hour <= 9 and time.minute < 30:
         now = now - datetime.timedelta(days=1)
 
     return now
 
+
 def grab_prices(symbol):
-    '''
+    """
     Get the current price for a given symbol
-    '''
+    """
 
     try:
         current_prices = get_last_price_data(symbol)
         now = get_last_trading_day()
         today = now.strftime("%Y-%m-%d")
         last_trading_day = current_prices[PricePayloadKeys.last_trading_day.value]
-        if  last_trading_day != today:
+        if last_trading_day != today:
             print(last_trading_day)
             raise ValueError('Data for {0} is not available'.format(today))
 
@@ -103,6 +107,7 @@ def grab_prices(symbol):
         return Stock(high, low, close_price, open_price, symbol)
     except KeyError:
         print("JSON Response from AlphaVantage Corrupt")
+
 
 def main(symbols):
     trades = []

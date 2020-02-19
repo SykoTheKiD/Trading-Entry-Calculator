@@ -1,14 +1,17 @@
-from pricing import get_last_price_data, PricePayloadKeys
-from exceptions import DocumentError
-import statement_retrieval as stret
-from exceptions import FinvizError
-from barchart_api import get_debts
-from fuzzy import fuzzy_increase
+# TODO Format file
 from enum import Enum
-import output as op
+
 import finviz
+import output as op
+import statement_retrieval as stret
+from exceptions import DocumentError
+from exceptions import FinvizError
+from externals import get_company_debts
+from fuzzy import fuzzy_increase
+from pricing import get_last_price_data, PricePayloadKeys
 
 NUM_YEARS_PROJECTED = 10
+
 
 class IVCKeys(Enum):
     company_name = "Company"
@@ -35,11 +38,12 @@ class IVCKeys(Enum):
     intrinsic_value_prior = "Intrinsic Value Prior"
     cash_per_share = "Cash Per Share"
 
+
 def get_discount_from_beta(discount_rate):
     rate = round(discount_rate, 1)
     if rate <= 0.8:
         return 0.05
-    elif rate<= 1:
+    elif rate <= 1:
         return 0.06
     elif rate <= 1.1:
         return 0.065
@@ -54,6 +58,7 @@ def get_discount_from_beta(discount_rate):
     else:
         return 0.09
 
+
 def get_cash_flows(cash_flow_statements):
     try:
         statements = cash_flow_statements[stret.StatementKeys.financials.value]
@@ -66,7 +71,8 @@ def get_cash_flows(cash_flow_statements):
             cash_flow_values.append(cash_flow)
             return cash_flow_values
         except ValueError as e:
-            raise e    
+            raise e
+
 
 def get_net_incomes(income_statements):
     try:
@@ -89,7 +95,7 @@ def get_total_debt(qrtrly_balance_sheets):
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
     except KeyError as e:
         raise DocumentError
-    short_term_debt, long_term_debt = get_debts(stock_symbol)
+    short_term_debt, long_term_debt = get_company_debts(stock_symbol)
     return short_term_debt + long_term_debt
 
 
@@ -103,24 +109,29 @@ def get_total_cash_on_hand(qrtrly_balance_sheets):
     except ValueError as e:
         raise e
 
+
 def get_projected_cash_flow(current_cash, initial_growth, projected_growth):
     curr = current_cash
     projected_growths = []
     for i in range(NUM_YEARS_PROJECTED):
-        if i < 5: growth = initial_growth
-        else: growth = projected_growth
-        next_year_cash = curr*(1 + growth)
+        if i < 5:
+            growth = initial_growth
+        else:
+            growth = projected_growth
+        next_year_cash = curr * (1 + growth)
         projected_growths.append(next_year_cash)
         curr = next_year_cash
     return projected_growths
 
+
 def calculate_discount_rates(inital_discount_rate):
     discount_rates = []
     for i in range(NUM_YEARS_PROJECTED):
-        rate = 1/(1 + inital_discount_rate)**(i+1)
+        rate = 1 / (1 + inital_discount_rate) ** (i + 1)
         discount_rates.append(rate)
         cur_rate = rate
     return discount_rates
+
 
 def calculate_discounted_values(projected_cash_flows, discount_rates):
     assert len(projected_cash_flows) == len(discount_rates)
@@ -129,15 +140,18 @@ def calculate_discounted_values(projected_cash_flows, discount_rates):
         discounted_values.append(projected_cash_flows[i] * discount_rates[i])
     return discounted_values
 
-def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total_debt, total_cash_and_short_term_investments):
+
+def calculate_intrinsic_value(projected_growth_sum, no_outstanding_shares, total_debt,
+                              total_cash_and_short_term_investments):
     intrinsic_value_prior = projected_growth_sum / no_outstanding_shares
     debt_per_share = total_debt / no_outstanding_shares
-    cash_per_share = total_cash_and_short_term_investments/ no_outstanding_shares
+    cash_per_share = total_cash_and_short_term_investments / no_outstanding_shares
     intrinsic_value = intrinsic_value_prior - debt_per_share + cash_per_share
     return {IVCKeys.intrinsic_value_prior.value: intrinsic_value_prior,
             IVCKeys.debt_per_share.value: debt_per_share,
             IVCKeys.cash_per_share.value: cash_per_share,
             IVCKeys.intrinsic_value.value: intrinsic_value}
+
 
 def main(stock_symbol, show=True):
     stock_symbol = stock_symbol.upper()
@@ -173,9 +187,6 @@ def main(stock_symbol, show=True):
             stret.BALANCE_SHEET, stock_symbol, quarterly=True)
         op.loading_message("Calculating Total Debt")
         total_debt = get_total_debt(balance_sheets_qrtrly)
-        # if total_debt == DEFAULT_NO_VALUE + DEFAULT_NO_VALUE:
-        #     exit()
-        # cash and short term investments
         op.loading_message("Calculating Total Cash on Hand")
         total_cash_and_short_term_investments = get_total_cash_on_hand(
             balance_sheets_qrtrly)
@@ -184,21 +195,21 @@ def main(stock_symbol, show=True):
         return
 
     try:
-        projected_growth_5Y = finviz.get_eps_growth(stock_symbol)
-        projected_growth_after_5Y = projected_growth_5Y / 2 if projected_growth_5Y != None else 0
+        projected_growth_5_y = finviz.get_eps_growth(stock_symbol)
+        projected_growth_after_5_y = projected_growth_5_y / 2 if projected_growth_5_y != None else 0
 
-        projected_growth_5Y = projected_growth_5Y / 100 if projected_growth_5Y != None else 0
-        projected_growth_after_5Y = projected_growth_after_5Y / 100
-    
+        projected_growth_5_y = projected_growth_5_y / 100 if projected_growth_5_y != None else 0
+        projected_growth_after_5_y = projected_growth_after_5_y / 100
+
         current_year_cash_flow = cash_flow_from_ops[0]
         current_year_net_income = net_incomes[0]
 
         op.loading_message("Calculating Projected Cash Flows")
         projected_growths_cash_flow = get_projected_cash_flow(
-            current_year_cash_flow, projected_growth_5Y, projected_growth_after_5Y)
+            current_year_cash_flow, projected_growth_5_y, projected_growth_after_5_y)
         op.loading_message("Calculating Projected Net Incomes")
         projected_growths_net_income = get_projected_cash_flow(
-            current_year_net_income, projected_growth_5Y, projected_growth_after_5Y)
+            current_year_net_income, projected_growth_5_y, projected_growth_after_5_y)
 
         op.loading_message("Fetching Number of Outstanding Shares from Finviz")
         no_outstanding_shares = finviz.get_no_shares(stock_symbol)
@@ -242,12 +253,11 @@ def main(stock_symbol, show=True):
         IVCKeys.symbol.value: stock_symbol,
         IVCKeys.total_debt.value: total_debt,
         IVCKeys.total_cash.value: total_cash_and_short_term_investments,
-        IVCKeys.eps_5Y.value: projected_growth_5Y,
-        IVCKeys.projected_growth.value: projected_growth_after_5Y,
+        IVCKeys.eps_5Y.value: projected_growth_5_y,
+        IVCKeys.projected_growth.value: projected_growth_after_5_y,
         IVCKeys.no_shares.value: no_outstanding_shares,
         IVCKeys.cash_from_ops_calcs.value: {
             IVCKeys.cash_from_ops.value: current_year_cash_flow,
-            IVCKeys.pv_of_cash.value: projected_growths_cash_flow,
             IVCKeys.discount_rates.value: discounted_rates,
             IVCKeys.pv_of_cash.value: projected_cash_flow_discounted,
             IVCKeys.intrinsic_value.value: intrisic_value_cash_flow
@@ -265,7 +275,9 @@ def main(stock_symbol, show=True):
             IVCKeys.market_price.value: market_price,
             IVCKeys.market_delta_cash_flow.value: market_price - intrinsic_value_cash_flow_final,
             IVCKeys.market_delta_net_income.value: market_price - intrinsic_value_net_income_final,
-            IVCKeys.cash_from_ops.value: fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops[:5][::-1]), IVCKeys.net_income.value: fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes[:5][::-1])
+            IVCKeys.cash_from_ops.value: fuzzy_increase(stret.CASH_FLOW_FROM_OPERATIONS_ATTR,
+                                                        cash_flow_from_ops[:5][::-1]),
+            IVCKeys.net_income.value: fuzzy_increase(stret.NET_INCOME_ATTR, net_incomes[:5][::-1])
         }
     }
 

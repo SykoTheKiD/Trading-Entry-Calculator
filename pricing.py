@@ -5,6 +5,7 @@ import urllib.request
 import json
 import ssl
 
+
 class PricePayloadKeys(Enum):
     symbol = "symbol"
     open_price = "open"
@@ -19,8 +20,10 @@ class PricePayloadKeys(Enum):
 
 
 def get_last_price_data(stock_symbol):
-    #SSL bypass hardcoded, it's fine because it's a simple API call with no personal details
-    with urllib.request.urlopen(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock_symbol}&apikey={cl.SWING_API_KEY}", context=ssl.SSLContext()) as url:
+    # SSL bypass hardcoded, it's fine because it's a simple API call with no personal details
+    with urllib.request.urlopen(
+            f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stock_symbol}&apikey={cl.SWING_API_KEY}",
+            context=ssl.SSLContext()) as url:
         data = json.loads(url.read().decode())
     try:
         data = data["Global Quote"]

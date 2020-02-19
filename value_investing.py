@@ -1,14 +1,13 @@
-from finviz import get_peg_ratio, get_company_name, get_eps_growth
-from exceptions import DocumentError, FinvizError
-from operator import truediv, gt, le
-import statement_retrieval as stret
-from fuzzy import fuzzy_increase
 from enum import Enum
-import urllib.request
+from operator import truediv, gt, le
+
+import externals
 import output as op
-import zacks_api
-import operator
-import json
+import statement_retrieval as stret
+from exceptions import DocumentError, FinvizError
+from finviz import get_peg_ratio, get_company_name, get_eps_growth
+from fuzzy import fuzzy_increase
+
 
 class FlowThreshold:
     def __init__(self, operation, threshold):
@@ -19,6 +18,8 @@ class FlowThreshold:
 DEBT_SERVICING_RATIO_THRESHOLD = FlowThreshold(le, 0.3)
 CASH_FLOW_FROM_INVESTING_THRESHOLD = FlowThreshold(gt, 0)
 CASH_FLOW_FROM_FINANCING_THRESHOLD = FlowThreshold(gt, 0)
+
+
 class VIKeys(Enum):
     company_name = "Company Name"
     symbol = "Symbol"
@@ -61,17 +62,20 @@ class VIKeys(Enum):
     roe_company = "ROE company"
     roe_industry = "ROE Industry"
     dtoe_company = "D to E Company"
-    dtoe_industry = "D to E Industry" 
+    dtoe_industry = "D to E Industry"
+
 
 def calculate_ratios(lst1, lst2):
     return [*map(truediv, lst1, lst2)]
+
 
 def calculate_ttm_ratio(lst1, lst2):
     if len(lst1) > 0 and len(lst2) > 0:
         ttm1 = lst1[-1]
         ttm2 = lst2[-1]
-        return ttm1/ttm2
+        return ttm1 / ttm2
     return -1
+
 
 def calculate_flow_graph(flows, flow_threshold):
     ret = []
@@ -81,6 +85,7 @@ def calculate_flow_graph(flows, flow_threshold):
         else:
             ret.append('-')
     return ret
+
 
 def extract_values_from_statment(statements, statement_attribute):
     float_vals = []
@@ -95,11 +100,15 @@ def extract_values_from_statment(statements, statement_attribute):
 
 
 def evaluate_peg_ratio(peg_ratio):
-    if peg_ratio == None:
+    if peg_ratio is None:
         return None
     return peg_ratio <= 1.6
 
+
 def main(stock):
+    global cash_from_investments, cash_from_financing, cash_flow_from_ops, eps_diluted, gross_margin, \
+        net_profit_margins, net_incomes, interest_expense, free_cash_flows, revenues, total_shareholders_equity, \
+        total_liabilities, total_current_liabilities, total_current_assets
     stock = stock.upper()
     try:
         op.loading_message("Fetching Yearly Income Statements")
@@ -204,14 +213,15 @@ def main(stock):
     except FinvizError as e:
         eps_1yr = None
         op.log_error(e)
-    
+
     try:
         eps_5yr = get_eps_growth(stock)
     except FinvizError as e:
         eps_5yr = None
         op.log_error(e)
 
-    company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry = zacks_api.get_industry_comparisons(stock)
+    company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry = externals. \
+        get_industry_comparisons(stock)
 
     results = {
         VIKeys.company_name.value: get_company_name(stock),

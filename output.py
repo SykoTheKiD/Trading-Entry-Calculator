@@ -1,23 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-''' Formats outputs to the Terminal
-'''
+""" Formats outputs to the Terminal
+"""
 
 import config_loader as cl
 import sys
 
 TITLE_LENGTH = 45
 
+
 def line_break(length=50):
     print('*' * length)
+
 
 def _clean_number(number):
     return round(number, 2)
 
+
 def clean_boolean(bool):
-    if bool: return "Increasing"
-    else: return "Decreasing"
+    if bool:
+        return "Increasing"
+    else:
+        return "Decreasing"
+
 
 def clean_list(lst, years):
     ret = ""
@@ -27,31 +33,39 @@ def clean_list(lst, years):
             ret += f"{years[i]} -> {lst[i]}, "
     return ret
 
+
 def loading_message(msg):
     if cl.VERBOSITY == 1:
         print(msg, "...")
+
 
 def log_verbose(msg):
     if cl.VERBOSITY == 1:
         print(msg)
 
+
 def log_error(msg):
     if cl.VERBOSITY == 1:
         print("ERROR:", msg)
+
 
 def print_title_panel(title):
     print("=" * TITLE_LENGTH)
     print("\t" + title)
     print("=" * TITLE_LENGTH)
 
+
 def clean_large_values(values):
-    return [*map(lambda x: f"${x/1e6:,}0", values)]
+    return [*map(lambda x: f"${x / 1e6:,}0", values)]
+
 
 def clean_numbers_in_list(lst):
     return [*map(_clean_number, lst)]
 
+
 def check_single_bool_test(peg_ratio_bool):
     return "PASS" if peg_ratio_bool else "FAIL"
+
 
 def print_swing_report(trades):
     '''
@@ -76,8 +90,8 @@ def print_swing_report(trades):
     Stock List Summary
     *******************
     Number of Stocks: {num_trades}
-    Total Potential Profit: {0.01*cl.CURRENT_CAPITAL*2*num_trades}
-    Total Potential Loss: {0.01*cl.CURRENT_CAPITAL*num_trades}
+    Total Potential Profit: {0.01 * cl.CURRENT_CAPITAL * 2 * num_trades}
+    Total Potential Loss: {0.01 * cl.CURRENT_CAPITAL * num_trades}
     Lowest Price Stock: {lowest.symbol} @ {lowest.close}/shr
     Highest Price Stock: {highest.symbol} @ {highest.close}/shr
         ''')
@@ -88,10 +102,10 @@ def print_swing_report(trades):
     total_capital_reqd = 0
     for trade in trades:
         total_capital_reqd = total_capital_reqd + \
-            (trade.entry * trade.position_size)
+                             (trade.entry * trade.position_size)
 
     msg = str()
-    if(num_trades > 5):
+    if (num_trades > 5):
         msg += "**Warning: Total capital at risk exceeds 5%\n**"
     if total_capital_reqd > cl.CURRENT_CAPITAL:
         msg += f"***! Total capital required (${_clean_number(total_capital_reqd)}) exceeds current capital (${cl.CURRENT_CAPITAL}) !***"
@@ -106,7 +120,8 @@ Total Number of Trades: {num_trades}
     ''')
 
 
-def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r,delta_2r, delta_3r, profit_r2, break_even_price, break_even_differential):
+def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r, delta_2r, delta_3r, profit_r2,
+                      break_even_price, break_even_differential):
     print(f'''
         SYMBOL: {stock.symbol}
 
@@ -122,8 +137,10 @@ def print_swing_trade(stock, capital_at_risk, trade, delta_1r, delta_15r,delta_2
         Potential Profit: {_clean_number(profit_r2)}
     ''')
 
+
 def format_to_percent(lst):
-    return [*map(lambda x: str(round(x*100, 2))+"%", lst)]
+    return [*map(lambda x: str(round(x * 100, 2)) + "%", lst)]
+
 
 def print_intrinsic_value(results, IVCKeys):
     print(f'''
@@ -131,21 +148,25 @@ def print_intrinsic_value(results, IVCKeys):
         Symbol: {results[IVCKeys.symbol.value]}
         Total Debt: ${results[IVCKeys.total_debt.value]:,}
         Total Cash on Hand: ${results[IVCKeys.total_cash.value]:,}
-        EPS 5Y: {results[IVCKeys.eps_5Y.value]*100}%
+        EPS 5Y: {results[IVCKeys.eps_5Y.value] * 100}%
         Projected Growth after 5Y: {results[IVCKeys.projected_growth.value] * 100}%
         Current Market Price: --> ${results[IVCKeys.evaluation.value][IVCKeys.market_price.value]} <--
         Projections using Cash flow from Operations:
                 Cash Flow from Ops: ${results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.cash_from_ops.value]:,}
-                Intrinsic Value: --> ${_clean_number(results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
+                Intrinsic Value: --> ${_clean_number(
+        results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <-- 
                 Delta (Cash Flow): {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta_cash_flow.value])}
         Projections using Net Income:
                 Net Income: ${results[IVCKeys.net_income_calcs.value][IVCKeys.net_income.value]:,}
-                Intrinsic Value: --> ${_clean_number(results[IVCKeys.net_income_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
-                Delta (Net Income): {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta_net_income.value])}
+                Intrinsic Value: --> ${_clean_number(
+        results[IVCKeys.net_income_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
+                Delta (Net Income): {_clean_number(
+        results[IVCKeys.evaluation.value][IVCKeys.market_delta_net_income.value])}
         Current PEG Ratio: {results[IVCKeys.evaluation.value][IVCKeys.peg.value]}
         Cash Flows from Ops Increasing: {results[IVCKeys.evaluation.value][IVCKeys.cash_from_ops.value]}
         Net Incomes Increasing: {results[IVCKeys.evaluation.value][IVCKeys.net_income.value]}
     ''')
+
 
 def print_value_investing_report(results, VIKeys):
     print(f''' 
@@ -216,8 +237,8 @@ def print_value_investing_report(results, VIKeys):
         -----------------
         Extra Information
         -----------------
-        Cash Flows From Financing: {clean_list(results[VIKeys. cash_flow_from_financing.value], results[VIKeys.years.value])}
-        Cash Flows From Investing: {clean_list(results[VIKeys. cash_flow_from_investing.value], results[VIKeys.years.value])}
+        Cash Flows From Financing: {clean_list(results[VIKeys.cash_flow_from_financing.value], results[VIKeys.years.value])}
+        Cash Flows From Investing: {clean_list(results[VIKeys.cash_flow_from_investing.value], results[VIKeys.years.value])}
 
         Free Cash Flows: {clean_list(clean_large_values(results[VIKeys.free_cash_flow.value]), results[VIKeys.years.value])}
         Free Cash Flow Trend: {clean_boolean(results[VIKeys.free_cash_flow_trend.value])}
