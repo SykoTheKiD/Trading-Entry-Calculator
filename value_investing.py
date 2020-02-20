@@ -126,7 +126,7 @@ def main(stock: str) -> None:
     stock = stock.upper()
     try:
         op.loading_message("Fetching Yearly Income Statements")
-        income_statements_yrly = stret.get_financial_statement(
+        income_statements_yearly = stret.get_financial_statement(
             stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
         op.loading_message("Fetching Quarterly Balance Sheets")
         balance_sheets_quarterly = stret.get_financial_statement(
@@ -140,8 +140,8 @@ def main(stock: str) -> None:
 
     op.loading_message("Parsing Years")
     years = []
-    for i in range(len(income_statements_yrly)):
-        years.append(income_statements_yrly[i]['date'])
+    for i in range(len(income_statements_yearly)):
+        years.append(income_statements_yearly[i]['date'])
     years = [year.split('-')[0] for year in years]
 
     quarters = []
@@ -151,13 +151,13 @@ def main(stock: str) -> None:
     try:
         op.loading_message("Parsing Net Incomes")
         net_incomes = extract_values_from_statement(
-            income_statements_yrly, stret.NET_INCOME_ATTR)
+            income_statements_yearly, stret.NET_INCOME_ATTR)
         op.loading_message("Parsing Revenues")
         revenues = extract_values_from_statement(
-            income_statements_yrly, stret.REVENUE_ATTR)
+            income_statements_yearly, stret.REVENUE_ATTR)
         op.loading_message("Parsing EPS Diluted")
         eps_diluted = extract_values_from_statement(
-            income_statements_yrly, stret.EPS_DILUTED_ATTR)
+            income_statements_yearly, stret.EPS_DILUTED_ATTR)
         op.loading_message("Parsing Cash Flow from Operations")
         cash_flow_from_ops = extract_values_from_statement(
             cash_flow_statements_yearly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
@@ -184,11 +184,11 @@ def main(stock: str) -> None:
             cash_flow_statements_yearly, stret.CASH_FROM_INVESTMENTS_ATTR)
         op.loading_message("Parsing Interest Expense")
         interest_expense = extract_values_from_statement(
-            income_statements_yrly, stret.INTEREST_EXPENSE_ATTR)
+            income_statements_yearly, stret.INTEREST_EXPENSE_ATTR)
         op.loading_message("Parsing Gross Margin")
-        gross_margin = extract_values_from_statement(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
+        gross_margin = extract_values_from_statement(income_statements_yearly, stret.GROSS_MARGIN_ATTR)
         op.loading_message("Parsing Net Margin")
-        net_profit_margins = extract_values_from_statement(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
+        net_profit_margins = extract_values_from_statement(income_statements_yearly, stret.NET_PROFIT_MARGIN_ATTR)
     except DocumentError as e:
         op.log_error(e)
 
