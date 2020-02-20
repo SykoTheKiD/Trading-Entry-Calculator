@@ -129,10 +129,10 @@ def main(stock: str) -> None:
         income_statements_yrly = stret.get_financial_statement(
             stret.INCOME_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
         op.loading_message("Fetching Quarterly Balance Sheets")
-        balance_sheets_qrtrly = stret.get_financial_statement(
+        balance_sheets_quarterly = stret.get_financial_statement(
             stret.BALANCE_SHEET, stock, quarterly=True)[stret.StatementKeys.financials.value][::-1][-5:]
         op.loading_message("Fetching Yearly Cash Flow Statements")
-        cash_flow_statements_yrly = stret.get_financial_statement(
+        cash_flow_statements_yearly = stret.get_financial_statement(
             stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
     except KeyError as e:
         op.log_error(e)
@@ -145,8 +145,8 @@ def main(stock: str) -> None:
     years = [year.split('-')[0] for year in years]
 
     quarters = []
-    for i in range(len(balance_sheets_qrtrly)):
-        quarters.append(balance_sheets_qrtrly[i]['date'])
+    for i in range(len(balance_sheets_quarterly)):
+        quarters.append(balance_sheets_quarterly[i]['date'])
 
     try:
         op.loading_message("Parsing Net Incomes")
@@ -160,28 +160,28 @@ def main(stock: str) -> None:
             income_statements_yrly, stret.EPS_DILUTED_ATTR)
         op.loading_message("Parsing Cash Flow from Operations")
         cash_flow_from_ops = extract_values_from_statement(
-            cash_flow_statements_yrly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
+            cash_flow_statements_yearly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
         op.loading_message("Parsing Total Current Assets")
         total_current_assets = extract_values_from_statement(
-            balance_sheets_qrtrly, stret.TOTAL_CURRENT_ASSETS_ATTR)
+            balance_sheets_quarterly, stret.TOTAL_CURRENT_ASSETS_ATTR)
         op.loading_message("Parsing Total Liabilities")
         total_liabilities = extract_values_from_statement(
-            balance_sheets_qrtrly, stret.TOTAL_LIABILITIES_ATTR)
+            balance_sheets_quarterly, stret.TOTAL_LIABILITIES_ATTR)
         op.loading_message("Parsing Total Current Liabilities")
         total_current_liabilities = extract_values_from_statement(
-            balance_sheets_qrtrly, stret.TOTAL_CURRENT_LIABILITIES_ATTR)
+            balance_sheets_quarterly, stret.TOTAL_CURRENT_LIABILITIES_ATTR)
         op.loading_message("Parsing Total Shareholder Equity")
         total_shareholders_equity = extract_values_from_statement(
-            balance_sheets_qrtrly, stret.TOTAL_SHAREHOLDER_EQUITY_ATTR)
+            balance_sheets_quarterly, stret.TOTAL_SHAREHOLDER_EQUITY_ATTR)
         op.loading_message("Parsing Free Cash Flows")
         free_cash_flows = extract_values_from_statement(
-            cash_flow_statements_yrly, stret.FREE_CASH_FLOWS_ATTR)
+            cash_flow_statements_yearly, stret.FREE_CASH_FLOWS_ATTR)
         op.loading_message("Parsing Cash From Financing")
         cash_from_financing = extract_values_from_statement(
-            cash_flow_statements_yrly, stret.CASH_FROM_FINANCING_ATTR)
+            cash_flow_statements_yearly, stret.CASH_FROM_FINANCING_ATTR)
         op.loading_message("Parsing Cash From Investments")
         cash_from_investments = extract_values_from_statement(
-            cash_flow_statements_yrly, stret.CASH_FROM_INVESTMENTS_ATTR)
+            cash_flow_statements_yearly, stret.CASH_FROM_INVESTMENTS_ATTR)
         op.loading_message("Parsing Interest Expense")
         interest_expense = extract_values_from_statement(
             income_statements_yrly, stret.INTEREST_EXPENSE_ATTR)
