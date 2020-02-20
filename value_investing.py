@@ -91,12 +91,12 @@ def calculate_flow_graph(flows: list, flow_threshold: FlowThreshold) -> list:
 
 
 def extract_values_from_statement(statements: list, statement_attribute: StatementAttribute) -> list:
-    float_vals = []
+    float_values = []
     try:
         for i in range(len(statements)):
             float_val = float(statements[i][statement_attribute.attribute_name])
-            float_vals.append(float_val)
-        return float_vals
+            float_values.append(float_val)
+        return float_values
     except (ValueError, KeyError) as e:
         op.log_error(e)
         raise DocumentError
