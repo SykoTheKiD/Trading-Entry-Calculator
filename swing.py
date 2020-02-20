@@ -3,18 +3,18 @@
 
 """ My personal swing trading entry formula
 """
+import argparse
+import datetime
+
+import config_loader as cl
+import output as op
 from pricing import get_last_price_data, PricePayloadKeys
 from stock import Stock
 from trade import Trade
 
-import config_loader as cl
-import output as op
-import argparse
-import datetime
-
 try:
     import holidays
-except ModuleNotFoundError:
+except ModuleNotFoundError as e:
     op.log_error("Holidays module not loaded")
 
 
@@ -35,7 +35,7 @@ def get_price_padding(closing_price: float) -> float:
         return 0.1
 
 
-def calculate_entry_exits(stock: str) -> object:
+def calculate_entry_exits(stock: Stock) -> Trade:
     """
     Calculate the entry, stop and exit prices for a given stock
     """

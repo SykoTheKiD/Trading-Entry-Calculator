@@ -4,7 +4,7 @@ from functools import wraps
 
 import output as op
 
-WAIT_TIME = 5
+WAIT_TIME: int = 5
 
 
 def retryable(max_tries: int):

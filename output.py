@@ -4,10 +4,13 @@
 """ Formats outputs to the Terminal
 """
 
-import config_loader as cl
 import sys
 
-TITLE_LENGTH = 45
+import config_loader as cl
+from stock import Stock
+from trade import Trade
+
+TITLE_LENGTH: int = 45
 
 
 def line_break(length=50) -> None:
@@ -19,10 +22,7 @@ def _clean_number(number: float) -> float:
 
 
 def clean_boolean(boolean: bool) -> str:
-    if boolean:
-        return "Increasing"
-    else:
-        return "Decreasing"
+    return "Increasing" if boolean else "Decreasing"
 
 
 def clean_list(lst: list, years: list) -> str:
@@ -44,7 +44,7 @@ def log_verbose(msg: str) -> None:
         print(msg)
 
 
-def log_error(msg: str) -> None:
+def log_error(msg: Exception) -> None:
     if cl.VERBOSITY == 1:
         print("ERROR:", msg)
 
@@ -68,9 +68,9 @@ def check_single_bool_test(peg_ratio_bool: bool) -> str:
 
 
 def print_swing_report(trades: list) -> None:
-    '''
+    """
     Summarize the trades and the costs
-    '''
+    """
     num_trades = len(trades)
     lowest_price, highest_price = sys.maxsize, -sys.maxsize
     lowest, highest = None, None
@@ -97,30 +97,31 @@ def print_swing_report(trades: list) -> None:
         ''')
     except AttributeError:
         print("Summary Failed")
-        return -1
 
-    total_capital_reqd = 0
+    total_capital_required = 0
     for trade in trades:
-        total_capital_reqd = total_capital_reqd + \
-                             (trade.entry * trade.position_size)
+        total_capital_required = total_capital_required + \
+                                 (trade.entry * trade.position_size)
 
     msg = str()
-    if (num_trades > 5):
+    if num_trades > 5:
         msg += "**Warning: Total capital at risk exceeds 5%\n**"
-    if total_capital_reqd > cl.CURRENT_CAPITAL:
-        msg += f"***! Total capital required (${_clean_number(total_capital_reqd)}) exceeds current capital (${cl.CURRENT_CAPITAL}) !***"
+    if total_capital_required > cl.CURRENT_CAPITAL:
+        msg += f"***! Total capital required (${_clean_number(total_capital_required)}) " \
+               f"exceeds current capital (${cl.CURRENT_CAPITAL}) !***"
 
     print(f'''
 Trade Summary
 ***************
-Total Capital Needed: ${_clean_number(total_capital_reqd)}
+Total Capital Needed: ${_clean_number(total_capital_required)}
 Total Number of Trades: {num_trades}
 
 {msg}
     ''')
 
 
-def print_swing_trade(stock: str, capital_at_risk: int, trade: object, delta_1r: int, delta_15r: int, delta_2r: int, delta_3r: int, profit_r2: int,
+def print_swing_trade(stock: Stock, capital_at_risk: int, trade: Trade, delta_1r: int, delta_15r: int, delta_2r: int,
+                      delta_3r: int, profit_r2: int,
                       break_even_price: int, break_even_differential: int) -> None:
     print(f'''
         SYMBOL: {stock.symbol}
@@ -142,115 +143,118 @@ def format_to_percent(lst: list) -> list:
     return [*map(lambda x: str(round(x * 100, 2)) + "%", lst)]
 
 
-def print_intrinsic_value(results: list, IVCKeys: object) -> None:
+def print_intrinsic_value(results: dict, ivc_keys) -> None:
     print(f'''
-        Company: {results[IVCKeys.company_name.value]}
-        Symbol: {results[IVCKeys.symbol.value]}
-        Total Debt: ${results[IVCKeys.total_debt.value]:,}
-        Total Cash on Hand: ${results[IVCKeys.total_cash.value]:,}
-        EPS 5Y: {results[IVCKeys.eps_5Y.value] * 100}%
-        Projected Growth after 5Y: {results[IVCKeys.projected_growth.value] * 100}%
-        Current Market Price: --> ${results[IVCKeys.evaluation.value][IVCKeys.market_price.value]} <--
+        Company: {results[ivc_keys.company_name.value]}
+        Symbol: {results[ivc_keys.symbol.value]}
+        Total Debt: ${results[ivc_keys.total_debt.value]:,}
+        Total Cash on Hand: ${results[ivc_keys.total_cash.value]:,}
+        EPS 5Y: {results[ivc_keys.eps_5Y.value] * 100}%
+        Projected Growth after 5Y: {results[ivc_keys.projected_growth.value] * 100}%
+        Current Market Price: --> ${results[ivc_keys.evaluation.value][ivc_keys.market_price.value]} <--
         Projections using Cash flow from Operations:
-                Cash Flow from Ops: ${results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.cash_from_ops.value]:,}
+                Cash Flow from Ops: ${results[ivc_keys.cash_from_ops_calcs.value][ivc_keys.cash_from_ops.value]:,}
                 Intrinsic Value: --> ${_clean_number(
-        results[IVCKeys.cash_from_ops_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <-- 
-                Delta (Cash Flow): {_clean_number(results[IVCKeys.evaluation.value][IVCKeys.market_delta_cash_flow.value])}
+        results[ivc_keys.cash_from_ops_calcs.value][
+            ivc_keys.intrinsic_value.value][ivc_keys.intrinsic_value.value])} <-- 
+                Delta (Cash Flow): {_clean_number(
+        results[ivc_keys.evaluation.value][ivc_keys.market_delta_cash_flow.value])}
         Projections using Net Income:
-                Net Income: ${results[IVCKeys.net_income_calcs.value][IVCKeys.net_income.value]:,}
+                Net Income: ${results[ivc_keys.net_income_calcs.value][ivc_keys.net_income.value]:,}
                 Intrinsic Value: --> ${_clean_number(
-        results[IVCKeys.net_income_calcs.value][IVCKeys.intrinsic_value.value][IVCKeys.intrinsic_value.value])} <--
+        results[ivc_keys.net_income_calcs.value][ivc_keys.intrinsic_value.value][ivc_keys.intrinsic_value.value])} <--
                 Delta (Net Income): {_clean_number(
-        results[IVCKeys.evaluation.value][IVCKeys.market_delta_net_income.value])}
-        Current PEG Ratio: {results[IVCKeys.evaluation.value][IVCKeys.peg.value]}
-        Cash Flows from Ops Increasing: {results[IVCKeys.evaluation.value][IVCKeys.cash_from_ops.value]}
-        Net Incomes Increasing: {results[IVCKeys.evaluation.value][IVCKeys.net_income.value]}
+        results[ivc_keys.evaluation.value][ivc_keys.market_delta_net_income.value])}
+        Current PEG Ratio: {results[ivc_keys.evaluation.value][ivc_keys.peg.value]}
+        Cash Flows from Ops Increasing: {results[ivc_keys.evaluation.value][ivc_keys.cash_from_ops.value]}
+        Net Incomes Increasing: {results[ivc_keys.evaluation.value][ivc_keys.net_income.value]}
     ''')
 
 
-def print_value_investing_report(results: list, VIKeys: object) -> None:
+# TODO Add print to file
+def print_value_investing_report(results: dict, vi_keys) -> None:
     print(f''' 
         -- Value Investing Report --
-        Company: {results[VIKeys.company_name.value]}
-        Symbol: {results[VIKeys.symbol.value]}
+        Company: {results[vi_keys.company_name.value]}
+        Symbol: {results[vi_keys.symbol.value]}
 
         --------------------
         Check if increasing
         --------------------
-        Revenues: {clean_list(clean_large_values(results[VIKeys.revenues.value]), results[VIKeys.years.value])}
-        Revenues Trend: {clean_boolean(results[VIKeys.revenues_trend.value])}
+        Revenues: {clean_list(clean_large_values(results[vi_keys.revenues.value]), results[vi_keys.years.value])}
+        Revenues Trend: {clean_boolean(results[vi_keys.revenues_trend.value])}
 
-        Net Incomes: {clean_list(clean_large_values(results[VIKeys.net_incomes.value]), results[VIKeys.years.value])}
-        Net Incomes Trend: {clean_boolean(results[VIKeys.net_incomes_trend.value])}
+        Net Incomes: {clean_list(clean_large_values(results[vi_keys.net_incomes.value]), results[vi_keys.years.value])}
+        Net Incomes Trend: {clean_boolean(results[vi_keys.net_incomes_trend.value])}
 
-        Cash Flow from Ops: {clean_list(clean_large_values(results[VIKeys.cash_flow_from_ops.value]), results[VIKeys.years.value])}
-        Cash Flow from Ops Trend: {clean_boolean(results[VIKeys.cash_flow_from_ops_trend.value])}
+        Cash Flow from Ops: {clean_list(clean_large_values(results[vi_keys.cash_flow_from_ops.value]), results[vi_keys.years.value])}
+        Cash Flow from Ops Trend: {clean_boolean(results[vi_keys.cash_flow_from_ops_trend.value])}
 
         ------------------------------------------------------------
         Check if consistent or growing and around 12-15% or higher
         ------------------------------------------------------------
-        Return on Equity (Cash Flows): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.return_on_equity_fcf.value])), results[VIKeys.years.value])}
+        Return on Equity (Cash Flows): {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.return_on_equity_fcf.value])), results[vi_keys.years.value])}
 
-        Return on Equity (Net Incomes): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.return_on_equity_net_income.value])), results[VIKeys.years.value])}
+        Return on Equity (Net Incomes): {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.return_on_equity_net_income.value])), results[vi_keys.years.value])}
 
-        Return on Equity Company: {results[VIKeys.roe_company.value]}
-        Return on Equity Industry: {results[VIKeys.roe_industry.value]}
+        Return on Equity Company: {results[vi_keys.roe_company.value]}
+        Return on Equity Industry: {results[vi_keys.roe_industry.value]}
         
         -----------------
         Check if above 1
         -----------------
-        Current Ratio: {_clean_number(results[VIKeys.current_ratio.value])}
-        Current Ratio Test: {check_single_bool_test(results[VIKeys.current_ratio_check.value])}
+        Current Ratio: {_clean_number(results[vi_keys.current_ratio.value])}
+        Current Ratio Test: {check_single_bool_test(results[vi_keys.current_ratio_check.value])}
 
         -----------------------------------------------------------------
         Check if consistent or shrinking and less or equal to competitors
         -----------------------------------------------------------------
-        Debt to Equity Ratios: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.debt_to_equity_ratio.value])), results[VIKeys.years.value])}
+        Debt to Equity Ratios: {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.debt_to_equity_ratio.value])), results[vi_keys.years.value])}
 
-        Debt to Equity Company: {results[VIKeys.dtoe_company.value]}
-        Debt to Equity Industry: {results[VIKeys.dtoe_industry.value]}
+        Debt to Equity Company: {results[vi_keys.dtoe_company.value]}
+        Debt to Equity Industry: {results[vi_keys.dtoe_industry.value]}
 
         -----------------------
         Check if less than 30%
         -----------------------
-        Debt Servicing Ratio (FCF): {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.debt_servicing_ratio_free_cash_flow.value])), results[VIKeys.years.value])}
+        Debt Servicing Ratio (FCF): {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.debt_servicing_ratio_free_cash_flow.value])), results[vi_keys.years.value])}
 
         ---------------
         Check if < 1.6
         ---------------
-        PEG Ratio: {results[VIKeys.peg_ratio.value]}
-        PEG Ratio Check: {check_single_bool_test(results[VIKeys.peg_ratio_check.value])}
+        PEG Ratio: {results[vi_keys.peg_ratio.value]}
+        PEG Ratio Check: {check_single_bool_test(results[vi_keys.peg_ratio_check.value])}
 
         ------------------------------------
         Check if positive and double digits
         ------------------------------------
-        EPS Current Yr: {results[VIKeys.eps_current.value]}%
-        EPS 1 Yr: {results[VIKeys.eps_1yr.value]}%
-        EPS 5 Yr: {results[VIKeys.eps_5yr.value]}%
+        EPS Current Yr: {results[vi_keys.eps_current.value]}%
+        EPS 1 Yr: {results[vi_keys.eps_1yr.value]}%
+        EPS 5 Yr: {results[vi_keys.eps_5yr.value]}%
 
         -------------------------------------
         Check if margins higher than industry
         -------------------------------------
-        Net Profit Margin Company: {results[VIKeys.company_npm.value]}
-        Net Profit Margin Industry: {results[VIKeys.industry_npm.value]}
+        Net Profit Margin Company: {results[vi_keys.company_npm.value]}
+        Net Profit Margin Industry: {results[vi_keys.industry_npm.value]}
 
         -----------------
         Extra Information
         -----------------
-        Cash Flows From Financing: {clean_list(results[VIKeys.cash_flow_from_financing.value], results[VIKeys.years.value])}
-        Cash Flows From Investing: {clean_list(results[VIKeys.cash_flow_from_investing.value], results[VIKeys.years.value])}
+        Cash Flows From Financing: {clean_list(results[vi_keys.cash_flow_from_financing.value], results[vi_keys.years.value])}
+        Cash Flows From Investing: {clean_list(results[vi_keys.cash_flow_from_investing.value], results[vi_keys.years.value])}
 
-        Free Cash Flows: {clean_list(clean_large_values(results[VIKeys.free_cash_flow.value]), results[VIKeys.years.value])}
-        Free Cash Flow Trend: {clean_boolean(results[VIKeys.free_cash_flow_trend.value])}
+        Free Cash Flows: {clean_list(clean_large_values(results[vi_keys.free_cash_flow.value]), results[vi_keys.years.value])}
+        Free Cash Flow Trend: {clean_boolean(results[vi_keys.free_cash_flow_trend.value])}
 
-        Free Cash Flows/ Revenue: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.free_cash_flow_revenue.value])), results[VIKeys.years.value])}
+        Free Cash Flows/ Revenue: {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.free_cash_flow_revenue.value])), results[vi_keys.years.value])}
 
-        EPS: {clean_list(results[VIKeys.eps.value], results[VIKeys.years.value])}
-        EPS Trend: {clean_boolean(results[VIKeys.eps_trend.value])}
+        EPS: {clean_list(results[vi_keys.eps.value], results[vi_keys.years.value])}
+        EPS Trend: {clean_boolean(results[vi_keys.eps_trend.value])}
 
-        Gross Margin: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.gross_margin.value])), results[VIKeys.years.value])}
-        Gross Margin Trend: {clean_boolean(results[VIKeys.gross_margin_trend.value])}
+        Gross Margin: {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.gross_margin.value])), results[vi_keys.years.value])}
+        Gross Margin Trend: {clean_boolean(results[vi_keys.gross_margin_trend.value])}
 
-        Net Profit Margin: {clean_list(format_to_percent(clean_numbers_in_list(results[VIKeys.net_profit_margin.value])), results[VIKeys.years.value])}
-        Net Profit Margin Trend: {clean_boolean(results[VIKeys.net_profit_margin_trend.value])}
+        Net Profit Margin: {clean_list(format_to_percent(clean_numbers_in_list(results[vi_keys.net_profit_margin.value])), results[vi_keys.years.value])}
+        Net Profit Margin Trend: {clean_boolean(results[vi_keys.net_profit_margin_trend.value])}
     ''')

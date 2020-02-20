@@ -1,8 +1,8 @@
-from enum import Enum
-import urllib.request
-import operator
 import json
+import operator
 import ssl
+import urllib.request
+from enum import Enum
 
 
 class StatementKeys(Enum):
@@ -80,7 +80,7 @@ INTEREST_EXPENSE_ATTR = StatementAttribute(StatementKeys.net_interest_expense.va
 DEBT_TO_EQUITY_RATIO_ATTR = StatementAttribute(None, None, operator.le)
 
 
-def get_financial_statement(statement_type: str, stocks: list, quarterly=False) -> dict:
+def get_financial_statement(statement_type: str, stocks: str, quarterly=False) -> dict:
     query_url = f"https://financialmodelingprep.com/api/v3/financials/{statement_type}/{stocks}"
     if quarterly:
         query_url += "?period=quarter"

@@ -1,5 +1,7 @@
+import sys
 from enum import Enum
 from operator import truediv, gt, le
+from typing import Optional
 
 import externals
 import output as op
@@ -7,7 +9,7 @@ import statement_retrieval as stret
 from exceptions import DocumentError, FinvizError
 from finviz import get_peg_ratio, get_company_name, get_eps_growth
 from fuzzy import fuzzy_increase
-import sys
+from statement_retrieval import StatementAttribute
 
 
 class FlowThreshold:
@@ -16,9 +18,9 @@ class FlowThreshold:
         self.threshold = threshold
 
 
-DEBT_SERVICING_RATIO_THRESHOLD = FlowThreshold(le, 0.3)
-CASH_FLOW_FROM_INVESTING_THRESHOLD = FlowThreshold(gt, 0)
-CASH_FLOW_FROM_FINANCING_THRESHOLD = FlowThreshold(gt, 0)
+DEBT_SERVICING_RATIO_THRESHOLD: FlowThreshold = FlowThreshold(le, 0.3)
+CASH_FLOW_FROM_INVESTING_THRESHOLD: FlowThreshold = FlowThreshold(gt, 0)
+CASH_FLOW_FROM_FINANCING_THRESHOLD: FlowThreshold = FlowThreshold(gt, 0)
 
 
 class VIKeys(Enum):
@@ -78,7 +80,7 @@ def calculate_ttm_ratio(lst1: list, lst2: list) -> float:
     return -1
 
 
-def calculate_flow_graph(flows: list, flow_threshold: float) -> list:
+def calculate_flow_graph(flows: list, flow_threshold: FlowThreshold) -> list:
     ret = []
     for i in range(len(flows)):
         if flow_threshold.operation(i, flow_threshold.threshold):
@@ -88,7 +90,7 @@ def calculate_flow_graph(flows: list, flow_threshold: float) -> list:
     return ret
 
 
-def extract_values_from_statment(statements: list, statement_attribute: object) -> list:
+def extract_values_from_statement(statements: list, statement_attribute: StatementAttribute) -> list:
     float_vals = []
     try:
         for i in range(len(statements)):
@@ -100,7 +102,7 @@ def extract_values_from_statment(statements: list, statement_attribute: object) 
         raise DocumentError
 
 
-def evaluate_peg_ratio(peg_ratio: float) -> bool:
+def evaluate_peg_ratio(peg_ratio: float) -> Optional[bool]:
     if peg_ratio is None:
         return None
     return peg_ratio <= 1.6
@@ -148,45 +150,45 @@ def main(stock: str) -> None:
 
     try:
         op.loading_message("Parsing Net Incomes")
-        net_incomes = extract_values_from_statment(
+        net_incomes = extract_values_from_statement(
             income_statements_yrly, stret.NET_INCOME_ATTR)
         op.loading_message("Parsing Revenues")
-        revenues = extract_values_from_statment(
+        revenues = extract_values_from_statement(
             income_statements_yrly, stret.REVENUE_ATTR)
         op.loading_message("Parsing EPS Diluted")
-        eps_diluted = extract_values_from_statment(
+        eps_diluted = extract_values_from_statement(
             income_statements_yrly, stret.EPS_DILUTED_ATTR)
         op.loading_message("Parsing Cash Flow from Operations")
-        cash_flow_from_ops = extract_values_from_statment(
+        cash_flow_from_ops = extract_values_from_statement(
             cash_flow_statements_yrly, stret.CASH_FLOW_FROM_OPERATIONS_ATTR)
         op.loading_message("Parsing Total Current Assets")
-        total_current_assets = extract_values_from_statment(
+        total_current_assets = extract_values_from_statement(
             balance_sheets_qrtrly, stret.TOTAL_CURRENT_ASSETS_ATTR)
         op.loading_message("Parsing Total Liabilities")
-        total_liabilities = extract_values_from_statment(
+        total_liabilities = extract_values_from_statement(
             balance_sheets_qrtrly, stret.TOTAL_LIABILITIES_ATTR)
         op.loading_message("Parsing Total Current Liabilities")
-        total_current_liabilities = extract_values_from_statment(
+        total_current_liabilities = extract_values_from_statement(
             balance_sheets_qrtrly, stret.TOTAL_CURRENT_LIABILITIES_ATTR)
         op.loading_message("Parsing Total Shareholder Equity")
-        total_shareholders_equity = extract_values_from_statment(
+        total_shareholders_equity = extract_values_from_statement(
             balance_sheets_qrtrly, stret.TOTAL_SHAREHOLDER_EQUITY_ATTR)
         op.loading_message("Parsing Free Cash Flows")
-        free_cash_flows = extract_values_from_statment(
+        free_cash_flows = extract_values_from_statement(
             cash_flow_statements_yrly, stret.FREE_CASH_FLOWS_ATTR)
         op.loading_message("Parsing Cash From Financing")
-        cash_from_financing = extract_values_from_statment(
+        cash_from_financing = extract_values_from_statement(
             cash_flow_statements_yrly, stret.CASH_FROM_FINANCING_ATTR)
         op.loading_message("Parsing Cash From Investments")
-        cash_from_investments = extract_values_from_statment(
+        cash_from_investments = extract_values_from_statement(
             cash_flow_statements_yrly, stret.CASH_FROM_INVESTMENTS_ATTR)
         op.loading_message("Parsing Interest Expense")
-        interest_expense = extract_values_from_statment(
+        interest_expense = extract_values_from_statement(
             income_statements_yrly, stret.INTEREST_EXPENSE_ATTR)
         op.loading_message("Parsing Gross Margin")
-        gross_margin = extract_values_from_statment(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
+        gross_margin = extract_values_from_statement(income_statements_yrly, stret.GROSS_MARGIN_ATTR)
         op.loading_message("Parsing Net Margin")
-        net_profit_margins = extract_values_from_statment(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
+        net_profit_margins = extract_values_from_statement(income_statements_yrly, stret.NET_PROFIT_MARGIN_ATTR)
     except DocumentError as e:
         op.log_error(e)
 
@@ -232,7 +234,7 @@ def main(stock: str) -> None:
         eps_5yr = None
         op.log_error(e)
 
-    company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry = externals. \
+    company_npm, industry_npm, roe_company, roe_industry, debt_to_equity_company, debt_to_equity_industry = externals. \
         get_industry_comparisons(stock)
 
     results = {
@@ -285,7 +287,7 @@ def main(stock: str) -> None:
         VIKeys.industry_npm.value: industry_npm,
         VIKeys.roe_company.value: roe_company,
         VIKeys.roe_industry.value: roe_industry,
-        VIKeys.dtoe_company.value: dtoe_company,
-        VIKeys.dtoe_industry.value: dtoe_industry
+        VIKeys.dtoe_company.value: debt_to_equity_company,
+        VIKeys.dtoe_industry.value: debt_to_equity_industry
     }
     op.print_value_investing_report(results, VIKeys)

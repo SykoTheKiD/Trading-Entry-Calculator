@@ -3,9 +3,10 @@
 
 """ Fuzzy increasing sequence verifier
 """
+from statement_retrieval import StatementAttribute
 
 
-def fuzzy_increase(statement_attribute, sequence):
+def fuzzy_increase(statement_attribute: StatementAttribute, sequence: list) -> bool:
     def __check_increasing(seq: list) -> bool:
         comp = statement_attribute.operation
         count = 0

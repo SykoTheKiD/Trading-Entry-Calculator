@@ -59,7 +59,7 @@ def get_discount_from_beta(discount_rate: float) -> float:
         return 0.09
 
 
-def get_cash_flows(cash_flow_statements: list) -> list:
+def get_cash_flows(cash_flow_statements: dict) -> list:
     try:
         statements = cash_flow_statements[stret.StatementKeys.financials.value]
     except KeyError as e:
@@ -74,7 +74,7 @@ def get_cash_flows(cash_flow_statements: list) -> list:
             raise e
 
 
-def get_net_incomes(income_statements: list) -> list:
+def get_net_incomes(income_statements: dict) -> list:
     try:
         statements = income_statements[stret.StatementKeys.financials.value]
     except KeyError as e:
@@ -89,7 +89,7 @@ def get_net_incomes(income_statements: list) -> list:
             raise e
 
 
-def get_total_debt(qrtrly_balance_sheets: list) -> list:
+def get_total_debt(qrtrly_balance_sheets: dict) -> float:
     try:
         stock_symbol = qrtrly_balance_sheets[stret.StatementKeys.symbol.value]
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
@@ -99,7 +99,7 @@ def get_total_debt(qrtrly_balance_sheets: list) -> list:
     return short_term_debt + long_term_debt
 
 
-def get_total_cash_on_hand(qrtrly_balance_sheets: list) -> list:
+def get_total_cash_on_hand(qrtrly_balance_sheets: dict) -> float:
     try:
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
     except KeyError as e:
@@ -141,11 +141,11 @@ def calculate_discounted_values(projected_cash_flows: list, discount_rates: list
     return discounted_values
 
 
-def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares: float, total_debt: float,
-                              total_cash_and_short_term_investments: float) -> dict:
+def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares: float, total_debt_current_debt: float,
+                              total_cash_and_short_term_investments_current: float) -> dict:
     intrinsic_value_prior = projected_growth_sum / no_outstanding_shares
-    debt_per_share = total_debt / no_outstanding_shares
-    cash_per_share = total_cash_and_short_term_investments / no_outstanding_shares
+    debt_per_share = total_debt_current_debt / no_outstanding_shares
+    cash_per_share = total_cash_and_short_term_investments_current / no_outstanding_shares
     intrinsic_value = intrinsic_value_prior - debt_per_share + cash_per_share
     return {IVCKeys.intrinsic_value_prior.value: intrinsic_value_prior,
             IVCKeys.debt_per_share.value: debt_per_share,
@@ -153,14 +153,15 @@ def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares
             IVCKeys.intrinsic_value.value: intrinsic_value}
 
 
-def main(stock_symbol: str, show=True) -> None:
+def main(stock_symbol: str, show=True) -> dict:
+    global cash_flow_from_ops, net_incomes, total_debt, total_cash_and_short_term_investments
     stock_symbol = stock_symbol.upper()
     op.loading_message(f"Calculating Intrinsic Value for: {stock_symbol}")
     op.loading_message("Fetching Yearly Income Statements")
-    income_statements_yrly = stret.get_financial_statement(
+    income_statements_yearly = stret.get_financial_statement(
         stret.INCOME_STATEMENT, stock_symbol)
     op.loading_message("Fetching Yearly Cash Flow Statements")
-    cash_flow_statements_yrly = stret.get_financial_statement(
+    cash_flow_statements_yearly = stret.get_financial_statement(
         stret.CASH_FLOW_STATEMENT, stock_symbol)
 
     # cash flow from ops
@@ -169,36 +170,33 @@ def main(stock_symbol: str, show=True) -> None:
     try:
         op.loading_message("Parsing Cash Flows from Operations")
         try:
-            cash_flow_from_ops = get_cash_flows(cash_flow_statements_yrly)
+            cash_flow_from_ops = get_cash_flows(cash_flow_statements_yearly)
         except DocumentError as e:
             op.log_error(e)
-            return
 
         op.loading_message("Parsing Net Incomes")
         try:
-            net_incomes = get_net_incomes(income_statements_yrly)
+            net_incomes = get_net_incomes(income_statements_yearly)
         except DocumentError as e:
             op.log_error(e)
-            return
 
         # total debt (short term + long) latest quarter
         op.loading_message("Fetching Quarterly Balance Sheets")
-        balance_sheets_qrtrly = stret.get_financial_statement(
+        balance_sheets_quarterly = stret.get_financial_statement(
             stret.BALANCE_SHEET, stock_symbol, quarterly=True)
         op.loading_message("Calculating Total Debt")
-        total_debt = get_total_debt(balance_sheets_qrtrly)
+        total_debt = get_total_debt(balance_sheets_quarterly)
         op.loading_message("Calculating Total Cash on Hand")
         total_cash_and_short_term_investments = get_total_cash_on_hand(
-            balance_sheets_qrtrly)
+            balance_sheets_quarterly)
     except ValueError as e:
         op.log_error(e)
-        return
 
     try:
         projected_growth_5_y = finviz.get_eps_growth(stock_symbol)
-        projected_growth_after_5_y = projected_growth_5_y / 2 if projected_growth_5_y != None else 0
+        projected_growth_after_5_y = projected_growth_5_y / 2 if projected_growth_5_y is not None else 0
 
-        projected_growth_5_y = projected_growth_5_y / 100 if projected_growth_5_y != None else 0
+        projected_growth_5_y = projected_growth_5_y / 100 if projected_growth_5_y is not None else 0
         projected_growth_after_5_y = projected_growth_after_5_y / 100
 
         current_year_cash_flow = cash_flow_from_ops[0]
@@ -217,7 +215,7 @@ def main(stock_symbol: str, show=True) -> None:
         beta_value = finviz.get_beta(stock_symbol)
     except FinvizError as e:
         op.log_error(e)
-        return
+        return dict()
 
     discounted_rates = calculate_discount_rates(
         get_discount_from_beta(beta_value))
@@ -227,7 +225,7 @@ def main(stock_symbol: str, show=True) -> None:
         projected_growths_cash_flow, discounted_rates)
 
     op.loading_message("Calculating Intrinsic Value from Cash Flow")
-    intrisic_value_cash_flow = calculate_intrinsic_value(sum(
+    intrinsic_value_cash_flow = calculate_intrinsic_value(sum(
         projected_cash_flow_discounted), no_outstanding_shares, total_debt, total_cash_and_short_term_investments)
 
     op.loading_message("Calculating Discounted Projected Cash Flows")
@@ -235,12 +233,12 @@ def main(stock_symbol: str, show=True) -> None:
         projected_growths_net_income, discounted_rates)
 
     op.loading_message("Calculating Intrinsic Value from Net Income")
-    intrisic_value_net_income = calculate_intrinsic_value(sum(
+    intrinsic_value_net_income = calculate_intrinsic_value(sum(
         projected_net_income_discounted), no_outstanding_shares, total_debt, total_cash_and_short_term_investments)
 
     market_price = float(get_last_price_data(stock_symbol)[PricePayloadKeys.price.value])
-    intrinsic_value_cash_flow_final = intrisic_value_cash_flow[IVCKeys.intrinsic_value.value]
-    intrinsic_value_net_income_final = intrisic_value_net_income[IVCKeys.intrinsic_value.value]
+    intrinsic_value_cash_flow_final = intrinsic_value_cash_flow[IVCKeys.intrinsic_value.value]
+    intrinsic_value_net_income_final = intrinsic_value_net_income[IVCKeys.intrinsic_value.value]
 
     try:
         peg_ratio = finviz.get_peg_ratio(stock_symbol)
@@ -260,7 +258,7 @@ def main(stock_symbol: str, show=True) -> None:
             IVCKeys.cash_from_ops.value: current_year_cash_flow,
             IVCKeys.discount_rates.value: discounted_rates,
             IVCKeys.pv_of_cash.value: projected_cash_flow_discounted,
-            IVCKeys.intrinsic_value.value: intrisic_value_cash_flow
+            IVCKeys.intrinsic_value.value: intrinsic_value_cash_flow
 
         },
         IVCKeys.net_income_calcs.value: {
@@ -268,7 +266,7 @@ def main(stock_symbol: str, show=True) -> None:
             IVCKeys.pv_of_cash.value: projected_growths_net_income,
             IVCKeys.discount_rates.value: discounted_rates,
             IVCKeys.projected_growth_discounted.value: projected_net_income_discounted,
-            IVCKeys.intrinsic_value.value: intrisic_value_net_income
+            IVCKeys.intrinsic_value.value: intrinsic_value_net_income
         },
         IVCKeys.evaluation.value: {
             IVCKeys.peg.value: peg_ratio,

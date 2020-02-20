@@ -1,12 +1,13 @@
-from requests_html import HTMLSession
-from decorators import retryable
 from bs4 import BeautifulSoup
+from requests_html import HTMLSession
 
-MAX_RETRIES = 3
+from decorators import retryable
+
+MAX_RETRIES: int = 3
 
 
 @retryable(MAX_RETRIES)
-def get_table_rows_from_url(url):
+def get_table_rows_from_url(url: str) -> list:
     sess = HTMLSession()
     s = sess.get(url)
     s.html.render()
@@ -20,8 +21,8 @@ def get_industry_comparisons(stock: str) -> (str, str, str, str, str, str):
     industry_npm = None
     roe_company = None
     roe_industry = None
-    toe_company = None
-    dtoe_industry = None
+    debt_to_equity_company = None
+    debt_to_equity_industry = None
     url = f"https://www.zacks.com/stock/research/{stock}/industry-comparison"
     rows = get_table_rows_from_url(url)
     for i in range(len(rows)):
@@ -35,9 +36,9 @@ def get_industry_comparisons(stock: str) -> (str, str, str, str, str, str):
                 roe_company = rows[i + 1].string.strip()
                 roe_industry = rows[i + 2].string.strip()
             elif current_stripped == "Debt to Equity (MRQ)":
-                dtoe_company = rows[i + 1].string.strip()
-                dtoe_industry = rows[i + 2].string.strip()
-    return company_npm, industry_npm, roe_company, roe_industry, dtoe_company, dtoe_industry
+                debt_to_equity_company = rows[i + 1].string.strip()
+                debt_to_equity_industry = rows[i + 2].string.strip()
+    return company_npm, industry_npm, roe_company, roe_industry, debt_to_equity_company, debt_to_equity_industry
 
 
 def get_company_debts(stock_symbol: str) -> (float, float):

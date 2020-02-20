@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-''' Custom Finviz.com API that grabs stock information
-'''
+""" Custom Finviz.com API that grabs stock information
+"""
 
 import requests
 from bs4 import BeautifulSoup
@@ -20,10 +20,10 @@ def _get_finviz_stock_table(stock_symbol: str) -> [str]:
     return page.find_all('td', class_="snapshot-td2")
 
 
-def get_eps_growth(stock_symbol: str, range=5) -> float:
-    if range == 0:
+def get_eps_growth(stock_symbol: str, time_frame=5) -> float:
+    if time_frame == 0:
         index = 20
-    elif range == 1:
+    elif time_frame == 1:
         index = 26
     else:
         index = 32
