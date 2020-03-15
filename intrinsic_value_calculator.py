@@ -82,8 +82,8 @@ def get_net_incomes(income_statements: dict) -> list:
     net_income_values = []
     for statement in statements:
         try:
-            net_incomes = float(statement[stret.StatementKeys.net_income.value])
-            net_income_values.append(net_incomes)
+            net_incomes_from_statement = float(statement[stret.StatementKeys.net_income.value])
+            net_income_values.append(net_incomes_from_statement)
             return net_income_values
         except ValueError as e:
             raise e
@@ -92,10 +92,11 @@ def get_net_incomes(income_statements: dict) -> list:
 def get_total_debt(qrtrly_balance_sheets: dict) -> float:
     try:
         stock_symbol = qrtrly_balance_sheets[stret.StatementKeys.symbol.value]
-        latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
-    except KeyError as e:
+    except KeyError:
         raise DocumentError
     short_term_debt, long_term_debt = get_company_debts(stock_symbol)
+    if short_term_debt < 0 or long_term_debt < 0:
+        return "Debt UNDEFINED"
     return short_term_debt + long_term_debt
 
 
@@ -124,12 +125,11 @@ def get_projected_cash_flow(current_cash: float, initial_growth: float, projecte
     return projected_growths
 
 
-def calculate_discount_rates(inital_discount_rate: float) -> list:
+def calculate_discount_rates(initial_discount_rate: float) -> list:
     discount_rates = []
     for i in range(NUM_YEARS_PROJECTED):
-        rate = 1 / (1 + inital_discount_rate) ** (i + 1)
+        rate = 1 / (1 + initial_discount_rate) ** (i + 1)
         discount_rates.append(rate)
-        cur_rate = rate
     return discount_rates
 
 

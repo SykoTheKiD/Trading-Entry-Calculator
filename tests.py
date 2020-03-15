@@ -42,7 +42,6 @@ class TestIntrinsicValueCalculator(unittest.TestCase):
                                     109499.51, 127436.58]
         projected_growth = ivc.get_projected_cash_flow(
             self.operational_cash_flow, self.growth_rate_5Y, self.growth_rate_after_5Y)
-        discount_rate = ivc.get_discount_from_beta(self.beta)
         discounted_rates = ivc.calculate_discount_rates(ivc.get_discount_from_beta(self.beta))
         discounted_cash_flows = ivc.calculate_discounted_values(
             projected_growth, discounted_rates)
@@ -56,7 +55,6 @@ class TestIntrinsicValueCalculator(unittest.TestCase):
         actual_intrinsic_value = 258.79
         projected_growth = ivc.get_projected_cash_flow(
             self.operational_cash_flow, self.growth_rate_5Y, self.growth_rate_after_5Y)
-        discount_rate = ivc.get_discount_from_beta(self.beta)
         discounted_rates = ivc.calculate_discount_rates(
             ivc.get_discount_from_beta(self.beta))
         discounted_cash_flows = ivc.calculate_discounted_values(

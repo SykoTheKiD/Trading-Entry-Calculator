@@ -2,3 +2,5 @@ beautifulsoup4
 requests
 tqdm
 holidays
+requests_html
+pytest

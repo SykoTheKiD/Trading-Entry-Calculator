@@ -3,28 +3,28 @@ from requests_html import HTMLSession
 
 from decorators import retryable
 
-MAX_RETRIES: int = 3
+MAX_RETRIES: int = 5
 
 
 @retryable(MAX_RETRIES)
 def get_table_rows_from_url(url: str) -> list:
     sess = HTMLSession()
     s = sess.get(url)
-    s.html.render()
+    s.html.render(timeout=10, sleep=10)
     soup = BeautifulSoup(s.html.html, "lxml")
-    rows = soup.find_all('td')
-    return rows
+    return soup.find_all('td')
 
 
 def get_industry_comparisons(stock: str) -> (str, str, str, str, str, str):
-    company_npm = None
-    industry_npm = None
-    roe_company = None
-    roe_industry = None
-    debt_to_equity_company = None
-    debt_to_equity_industry = None
+    company_npm = "U/D"
+    industry_npm = "U/D"
+    roe_company = "U/D"
+    roe_industry = "U/D"
+    debt_to_equity_company = "U/D"
+    debt_to_equity_industry = "U/D"
     url = f"https://www.zacks.com/stock/research/{stock}/industry-comparison"
     rows = get_table_rows_from_url(url)
+    rows = rows if rows is not None else list()
     for i in range(len(rows)):
         current = rows[i].string
         if current is not None:
@@ -44,14 +44,14 @@ def get_industry_comparisons(stock: str) -> (str, str, str, str, str, str):
 def get_company_debts(stock_symbol: str) -> (float, float):
     url = f"https://www.barchart.com/stocks/quotes/{stock_symbol}/balance-sheet/quarterly"
     rows = get_table_rows_from_url(url)
-    short_term_debt = 0
-    long_term_debt = 0
+    rows = rows if rows is not None else list()
+    short_term_debt = -1
+    long_term_debt = -1
     for i in range(len(rows)):
         if rows[i].string is not None:
             if rows[i].string.strip() == "Short Term Debt":
                 short_term_debt = float(rows[i + 1].string.strip()
                                         .replace(',', ''))
             if rows[i].string.strip() == "Long Term Debt $M":
-                long_term_debt = float(rows[i + 1].string.strip()
-                                       .replace(',', ''))
+                long_term_debt = float(rows[i + 1].string.strip().replace(',', ''))
     return short_term_debt, long_term_debt
