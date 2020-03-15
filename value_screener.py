@@ -35,7 +35,7 @@ def main(start_index=0) -> None:
                     op.print_intrinsic_value(results, ivc.IVCKeys)
         except (FinvizError, DocumentError, TypeError) as e:
             op.log_error(e)
-        except HTTPError as h:
+        except HTTPError:
             if num_retries == MAX_NETWORK_RETRIES:
                 op.log_verbose("Network Congestion")
             else:

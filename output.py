@@ -9,8 +9,10 @@ import sys
 import config_loader as cl
 from stock import Stock
 from trade import Trade
+from decorators import write_to_file
 
 TITLE_LENGTH: int = 45
+WRITE_TO_FILE: bool = False
 
 
 def line_break(length=50) -> None:
@@ -66,7 +68,7 @@ def clean_numbers_in_list(lst: list) -> list:
 def check_single_bool_test(peg_ratio_bool: bool) -> str:
     return "PASS" if peg_ratio_bool else "FAIL"
 
-
+@write_to_file("swing-trade-report")
 def print_swing_report(trades: list) -> None:
     """
     Summarize the trades and the costs
@@ -119,7 +121,7 @@ Total Number of Trades: {num_trades}
 {msg}
     ''')
 
-
+@write_to_file("swing-trade")
 def print_swing_trade(stock: Stock, capital_at_risk: int, trade: Trade, delta_1r: int, delta_15r: int, delta_2r: int,
                       delta_3r: int, profit_r2: int,
                       break_even_price: int, break_even_differential: int) -> None:
@@ -171,7 +173,7 @@ def print_intrinsic_value(results: dict, ivc_keys) -> None:
     ''')
 
 
-# TODO Add print to file
+@write_to_file("value-investing-report")
 def print_value_investing_report(results: dict, vi_keys) -> None:
     print(f''' 
         -- Value Investing Report --

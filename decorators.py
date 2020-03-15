@@ -1,8 +1,12 @@
 ## TODO Format file
+import sys
 import time
 from functools import wraps
+import os
+import datetime
 
 import output as op
+from config_loader import WRITE_TO_FILE
 
 WAIT_TIME: int = 5
 
@@ -22,4 +26,23 @@ def retryable(max_tries: int):
 
         return inner
 
+    return outter
+
+def write_to_file(file_prefix: str):
+    def outter(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            if WRITE_TO_FILE:
+                now = datetime.datetime.now()
+                date_now = now.strftime("%Y-%m-%d-%H-%M")
+                file_path = os.path.join('.', "reports", f"{file_prefix}-{date_now}.txt")
+                original_std_out = sys.stdout
+                sys.stdout = open(file_path, 'w+')
+                func(*args, **kwargs)
+                sys.stdout.close()
+                sys.stdout = original_std_out
+                sys.stdout = sys.stdout
+            else:
+                func(*args, **kwargs)
+        return inner
     return outter
