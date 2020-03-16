@@ -66,7 +66,3 @@ class TestIntrinsicValueCalculator(unittest.TestCase):
         p = intrinsic_value["Intrinsic Value"]
         q = actual_intrinsic_value
         self.assertTrue(abs(round(p, 2) - q) <= 2)
-
-
-if __name__ == "__main__":
-    unittest.main()
