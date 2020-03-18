@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from requests_html import HTMLSession
 
-from decorators import retryable
+from calculator.decorators import retryable
 
 MAX_RETRIES: int = 5
 
@@ -12,6 +12,7 @@ def get_table_rows_from_url(url: str) -> list:
     s = sess.get(url)
     s.html.render(timeout=10, sleep=10)
     soup = BeautifulSoup(s.html.html, "lxml")
+    s.close()
     return soup.find_all('td')
 
 
@@ -45,8 +46,8 @@ def get_company_debts(stock_symbol: str) -> (float, float):
     url = f"https://www.barchart.com/stocks/quotes/{stock_symbol}/balance-sheet/quarterly"
     rows = get_table_rows_from_url(url)
     rows = rows if rows is not None else list()
-    short_term_debt = -1
-    long_term_debt = -1
+    short_term_debt = 0
+    long_term_debt = 0
     for i in range(len(rows)):
         if rows[i].string is not None:
             if rows[i].string.strip() == "Short Term Debt":

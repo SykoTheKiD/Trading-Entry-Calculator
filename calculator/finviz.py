@@ -7,7 +7,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-from exceptions import FinvizError
+from calculator.exceptions import FinvizError
 
 
 def _get_finviz_stock_page(stock_symbol: str) -> BeautifulSoup:

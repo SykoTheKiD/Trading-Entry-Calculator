@@ -3,13 +3,13 @@ from enum import Enum
 from operator import truediv, gt, le
 from typing import Optional
 
-import externals
-import output as op
-import statement_retrieval as stret
-from exceptions import DocumentError, FinvizError
-from finviz import get_peg_ratio, get_company_name, get_eps_growth
-from fuzzy import fuzzy_increase
-from statement_retrieval import StatementAttribute
+import calculator.externals as externals
+import calculator.output as op
+import calculator.statement_retrieval as stret
+from calculator.exceptions import DocumentError, FinvizError
+from calculator.finviz import get_peg_ratio, get_company_name, get_eps_growth
+from calculator.fuzzy import fuzzy_increase
+from calculator.statement_retrieval import StatementAttribute
 
 
 class FlowThreshold:
@@ -24,7 +24,7 @@ CASH_FLOW_FROM_FINANCING_THRESHOLD: FlowThreshold = FlowThreshold(gt, 0)
 
 
 class VIKeys(Enum):
-    company_name = "Company Name"
+    company_name = "company_name"
     symbol = "Symbol"
     cash_flow_from_investing = "Cash Flow From Investing"
     cash_flow_from_financing = "Cash Flow From Financing"
@@ -108,7 +108,7 @@ def evaluate_peg_ratio(peg_ratio: float) -> Optional[bool]:
     return peg_ratio <= 1.6
 
 
-def main(stock: str) -> None:
+def main(stock: str) -> dict:
     cash_from_investments = sys.maxsize
     cash_from_financing = sys.maxsize
     cash_flow_from_ops = sys.maxsize
@@ -136,7 +136,7 @@ def main(stock: str) -> None:
             stret.CASH_FLOW_STATEMENT, stock)[stret.StatementKeys.financials.value][::-1][-5:]
     except KeyError as e:
         op.log_error(e)
-        return
+        return dict()
 
     op.loading_message("Parsing Years")
     years = []
@@ -291,3 +291,4 @@ def main(stock: str) -> None:
         VIKeys.dtoe_industry.value: debt_to_equity_industry
     }
     op.print_value_investing_report(results, VIKeys)
+    return results

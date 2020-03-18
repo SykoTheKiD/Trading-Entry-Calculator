@@ -3,7 +3,7 @@
 
 """ Fuzzy increasing sequence verifier
 """
-from statement_retrieval import StatementAttribute
+from calculator.statement_retrieval import StatementAttribute
 
 
 def fuzzy_increase(statement_attribute: StatementAttribute, sequence: list) -> bool:

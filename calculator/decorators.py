@@ -5,8 +5,8 @@ from functools import wraps
 import os
 import datetime
 
-import output as op
-from config_loader import WRITE_TO_FILE
+# import calculator.output as op
+from calculator.config_loader import WRITE_TO_FILE
 
 WAIT_TIME: int = 5
 
@@ -20,7 +20,7 @@ def retryable(max_tries: int):
                 try:
                     return func(*args, **kwargs)
                 except Exception:
-                    op.log_error(f"Decorator error --> {func.__name__}")
+                    # op.log_error(f"Decorator error --> {func.__name__}")
                     num_tries = num_tries + 1
                     time.sleep(WAIT_TIME)
 

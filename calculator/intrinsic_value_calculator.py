@@ -95,8 +95,6 @@ def get_total_debt(qrtrly_balance_sheets: dict) -> float:
     except KeyError:
         raise DocumentError
     short_term_debt, long_term_debt = get_company_debts(stock_symbol)
-    if short_term_debt < 0 or long_term_debt < 0:
-        return "Debt UNDEFINED"
     return short_term_debt + long_term_debt
 
 
