@@ -12,6 +12,7 @@ def get_table_rows_from_url(url: str) -> list:
     s = sess.get(url)
     s.html.render(timeout=10, sleep=10)
     soup = BeautifulSoup(s.html.html, "lxml")
+    s.close()
     return soup.find_all('td')
 
 
