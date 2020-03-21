@@ -7,6 +7,7 @@ __pycache__/
 
 # reports
 reports/
+portfolios/
 
 # C extensions
 *.so
