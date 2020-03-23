@@ -1,16 +1,19 @@
+import os
+import time
+
 import intrinsic_value_calculator
-import value_investing
-import value_screener
 import output as op
 import swing
-import time
-import os
+import value_investing
+import value_screener
+
 
 def get_value_report(stock_list) -> None:
     for i in stock_list:
         value_investing.main(i)
         intrinsic_value_calculator.main(i)
         time.sleep(3)
+
 
 def main() -> None:
     try:
@@ -48,6 +51,7 @@ def main() -> None:
     except (KeyboardInterrupt, EOFError):
         print("\n\nGoodbye!")
         exit()
+
 
 if __name__ == "__main__":
     main()

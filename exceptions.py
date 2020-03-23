@@ -6,3 +6,8 @@ class DocumentError(Exception):
 class FinvizError(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args)
+
+
+class BarChartAPIException(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args)

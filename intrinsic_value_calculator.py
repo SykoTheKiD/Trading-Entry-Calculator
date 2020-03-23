@@ -59,34 +59,27 @@ def get_discount_from_beta(discount_rate: float) -> float:
         return 0.09
 
 
-def get_cash_flows(cash_flow_statements: dict) -> list:
+def cash_source(income_or_cash_flow_statement: dict, statement_key: stret.StatementKeys) -> list:
     try:
-        statements = cash_flow_statements[stret.StatementKeys.financials.value]
-    except KeyError as e:
+        statements = income_or_cash_flow_statement[stret.StatementKeys.financials.value]
+    except KeyError:
         raise DocumentError
-    cash_flow_values = []
+    values = []
     for statement in statements:
         try:
-            cash_flow = float(statement[stret.StatementKeys.operating_cash_flow.value])
-            cash_flow_values.append(cash_flow)
-            return cash_flow_values
+            cash_value = float(statement[statement_key.value])
+            values.append(cash_value)
+            return values
         except ValueError as e:
             raise e
+
+
+def get_cash_flows(cash_flow_statements: dict) -> list:
+    return cash_source(cash_flow_statements, stret.StatementKeys.operating_cash_flow)
 
 
 def get_net_incomes(income_statements: dict) -> list:
-    try:
-        statements = income_statements[stret.StatementKeys.financials.value]
-    except KeyError as e:
-        raise DocumentError
-    net_income_values = []
-    for statement in statements:
-        try:
-            net_incomes_from_statement = float(statement[stret.StatementKeys.net_income.value])
-            net_income_values.append(net_incomes_from_statement)
-            return net_income_values
-        except ValueError as e:
-            raise e
+    return cash_source(income_statements, stret.StatementKeys.net_income)
 
 
 def get_total_debt(qrtrly_balance_sheets: dict) -> float:
@@ -101,7 +94,7 @@ def get_total_debt(qrtrly_balance_sheets: dict) -> float:
 def get_total_cash_on_hand(qrtrly_balance_sheets: dict) -> float:
     try:
         latest_statement = qrtrly_balance_sheets[stret.StatementKeys.financials.value][0]
-    except KeyError as e:
+    except KeyError:
         raise DocumentError
     try:
         return float(latest_statement[stret.StatementKeys.cash_and_short_term_investments.value])
@@ -113,7 +106,7 @@ def get_projected_cash_flow(current_cash: float, initial_growth: float, projecte
     curr = current_cash
     projected_growths = []
     for i in range(NUM_YEARS_PROJECTED):
-        if i < 5:
+        if i < (NUM_YEARS_PROJECTED // 2):
             growth = initial_growth
         else:
             growth = projected_growth
@@ -151,6 +144,7 @@ def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares
             IVCKeys.intrinsic_value.value: intrinsic_value}
 
 
+# noinspection PyGlobalUndefined
 def main(stock_symbol: str, show=True) -> dict:
     global cash_flow_from_ops, net_incomes, total_debt, total_cash_and_short_term_investments
     stock_symbol = stock_symbol.upper()
@@ -256,7 +250,9 @@ def main(stock_symbol: str, show=True) -> dict:
             IVCKeys.cash_from_ops.value: current_year_cash_flow,
             IVCKeys.discount_rates.value: discounted_rates,
             IVCKeys.pv_of_cash.value: projected_cash_flow_discounted,
-            IVCKeys.intrinsic_value.value: intrinsic_value_cash_flow
+            IVCKeys.intrinsic_value.value: intrinsic_value_cash_flow,
+            IVCKeys.debt_per_share.value: intrinsic_value_cash_flow[IVCKeys.debt_per_share.value],
+            IVCKeys.cash_per_share.value: intrinsic_value_cash_flow[IVCKeys.cash_per_share.value]
 
         },
         IVCKeys.net_income_calcs.value: {
@@ -264,7 +260,9 @@ def main(stock_symbol: str, show=True) -> dict:
             IVCKeys.pv_of_cash.value: projected_growths_net_income,
             IVCKeys.discount_rates.value: discounted_rates,
             IVCKeys.projected_growth_discounted.value: projected_net_income_discounted,
-            IVCKeys.intrinsic_value.value: intrinsic_value_net_income
+            IVCKeys.intrinsic_value.value: intrinsic_value_net_income,
+            IVCKeys.debt_per_share.value: intrinsic_value_net_income[IVCKeys.debt_per_share.value],
+            IVCKeys.cash_per_share.value: intrinsic_value_net_income[IVCKeys.cash_per_share.value]
         },
         IVCKeys.evaluation.value: {
             IVCKeys.peg.value: peg_ratio,

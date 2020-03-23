@@ -52,7 +52,7 @@ def get_company_debts(stock_symbol: str) -> (float, float):
         if rows[i].string is not None:
             if rows[i].string.strip() == "Short Term Debt":
                 short_term_debt = float(rows[i + 1].string.strip()
-                                        .replace(',', ''))
+                                        .replace(',', '')) * 1e3
             if rows[i].string.strip() == "Long Term Debt $M":
-                long_term_debt = float(rows[i + 1].string.strip().replace(',', ''))
+                long_term_debt = float(rows[i + 1].string.strip().replace(',', '')) * 1e3
     return short_term_debt, long_term_debt

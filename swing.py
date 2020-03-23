@@ -117,8 +117,8 @@ def main(symbols: list) -> None:
             op.line_break()
             trade_obj = calculate_entry_exits(stock)
             trades.append(trade_obj)
-        except (ValueError, KeyError) as e:
-            print("Process Error for stock", symbol.upper(), e)
+        except (ValueError, KeyError) as err:
+            print("Process Error for stock", symbol.upper(), err)
 
     op.line_break()
     op.print_swing_report(trades)
