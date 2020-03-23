@@ -146,6 +146,7 @@ def format_to_percent(lst: list) -> list:
 
 
 def print_intrinsic_value(results: dict, ivc_keys) -> None:
+    print_title_panel("Intrinsic Value Report")
     print(f'''
         Company: {results[ivc_keys.company_name.value]}
         Symbol: {results[ivc_keys.symbol.value]}
@@ -175,6 +176,7 @@ def print_intrinsic_value(results: dict, ivc_keys) -> None:
 
 @write_to_file("value-investing-report")
 def print_value_investing_report(results: dict, vi_keys) -> None:
+    print_title_panel("Value Investing Report")
     print(f''' 
         -- Value Investing Report --
         Company: {results[vi_keys.company_name.value]}

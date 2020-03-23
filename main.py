@@ -8,9 +8,7 @@ import os
 
 def get_value_report(stock_list) -> None:
     for i in stock_list:
-        op.print_title_panel("Value Investing Report")
         value_investing.main(i)
-        op.print_title_panel("Intrinsic Value Report")
         intrinsic_value_calculator.main(i)
         time.sleep(3)
 
@@ -47,7 +45,7 @@ def main() -> None:
                     print("Portfolio file not found")
             else:
                 exit()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nGoodbye!")
         exit()
 
