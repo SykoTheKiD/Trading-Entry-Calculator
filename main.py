@@ -48,7 +48,7 @@ def main() -> None:
                     print("Portfolio file not found")
             else:
                 exit()
-    except (KeyboardInterrupt, EOFError):
+    except (KeyboardInterrupt, EOFError, ConnectionResetError):
         print("\n\nGoodbye!")
         exit()
 
