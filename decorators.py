@@ -22,10 +22,11 @@ def retryable(max_tries: int):
                 try:
                     return func(*args, **kwargs)
                 except Exception:
-                    op.log_error(f"Decorator error --> {func.__name__}")
+                    function_name = func.__name__
+                    op.log_error(f"Decorator error --> {function_name}")
                     num_tries = num_tries + 1
                     time.sleep(WAIT_TIME)
-            raise exceptions.BarChartAPIException(f"Could not retrieve debt values with {max_tries} re-tries")
+            raise exceptions.NetworkException(f"Could not retrieve data from function {function_name} values with {max_tries} re-tries")
 
         return inner
 

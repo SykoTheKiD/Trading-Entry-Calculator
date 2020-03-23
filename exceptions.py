@@ -8,6 +8,6 @@ class FinvizError(Exception):
         Exception.__init__(self, *args)
 
 
-class BarChartAPIException(Exception):
+class NetworkException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args)
