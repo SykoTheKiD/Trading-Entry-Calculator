@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from requests_html import HTMLSession
 
+import output as op
 from decorators import retryable
 
 MAX_RETRIES: int = 5
@@ -49,10 +50,18 @@ def get_company_debts(stock_symbol: str) -> (float, float):
     short_term_debt = 0
     long_term_debt = 0
     for i in range(len(rows)):
-        if rows[i].string is not None:
-            if rows[i].string.strip() == "Short Term Debt":
-                short_term_debt = float(rows[i + 1].string.strip()
-                                        .replace(',', '')) * 1e3
-            if rows[i].string.strip() == "Long Term Debt $M":
-                long_term_debt = float(rows[i + 1].string.strip().replace(',', '')) * 1e3
+        current_row = rows[i].string
+        if current_row is not None:
+            current_row = current_row.strip()
+            if current_row == "Short Term Debt":
+                try:
+                    short_term_debt = float(rows[i + 1].string.strip()
+                                            .replace(',', '')) * 1e3
+                except ValueError as e:
+                    op.log_error(e)
+            if current_row == "Long Term Debt $M":
+                try:
+                    long_term_debt = float(rows[i + 1].string.strip().replace(',', '')) * 1e3
+                except ValueError as e:
+                    op.log_error(e)
     return short_term_debt, long_term_debt

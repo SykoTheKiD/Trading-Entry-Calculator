@@ -14,7 +14,7 @@ IVC_BUFFER_VALUE: int = 500
 DELAY_TIME: int = 10
 
 
-def main(start_index=0) -> None:
+def main(start_index: int = 0) -> None:
     op.print_title_panel("Value Screener Pro")
     all_stocks = get_all_stocks()
     for stock in tqdm(all_stocks[start_index:]):

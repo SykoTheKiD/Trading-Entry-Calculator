@@ -82,11 +82,7 @@ def get_net_incomes(income_statements: dict) -> list:
     return cash_source(income_statements, stret.StatementKeys.net_income)
 
 
-def get_total_debt(qrtrly_balance_sheets: dict) -> float:
-    try:
-        stock_symbol = qrtrly_balance_sheets[stret.StatementKeys.symbol.value]
-    except KeyError:
-        raise DocumentError
+def get_total_debt(stock_symbol: str) -> float:
     short_term_debt, long_term_debt = get_company_debts(stock_symbol)
     return short_term_debt + long_term_debt
 
@@ -156,28 +152,28 @@ def main(stock_symbol: str, show=True) -> dict:
     cash_flow_statements_yearly = stret.get_financial_statement(
         stret.CASH_FLOW_STATEMENT, stock_symbol)
 
+    try:
+        cash_flow_from_ops = get_cash_flows(cash_flow_statements_yearly)
+    except DocumentError as e:
+        op.log_error(e)
+
+    op.loading_message("Parsing Net Incomes")
+    try:
+        net_incomes = get_net_incomes(income_statements_yearly)
+    except DocumentError as e:
+        op.log_error(e)
+
     # cash flow from ops
     # use net income if cash flow from ops not increasing
     # if net income not increasing as well skip
     try:
         op.loading_message("Parsing Cash Flows from Operations")
-        try:
-            cash_flow_from_ops = get_cash_flows(cash_flow_statements_yearly)
-        except DocumentError as e:
-            op.log_error(e)
-
-        op.loading_message("Parsing Net Incomes")
-        try:
-            net_incomes = get_net_incomes(income_statements_yearly)
-        except DocumentError as e:
-            op.log_error(e)
-
         # total debt (short term + long) latest quarter
         op.loading_message("Fetching Quarterly Balance Sheets")
         balance_sheets_quarterly = stret.get_financial_statement(
             stret.BALANCE_SHEET, stock_symbol, quarterly=True)
         op.loading_message("Calculating Total Debt")
-        total_debt = get_total_debt(balance_sheets_quarterly)
+        total_debt = get_total_debt(stock_symbol)
         op.loading_message("Calculating Total Cash on Hand")
         total_cash_and_short_term_investments = get_total_cash_on_hand(
             balance_sheets_quarterly)
