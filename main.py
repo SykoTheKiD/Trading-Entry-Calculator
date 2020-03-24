@@ -7,6 +7,8 @@ import swing
 import value_investing
 import value_screener
 
+DEFAULT_MENU_OPTION = "2"
+
 
 def get_value_report(stock_list) -> None:
     for i in stock_list:
@@ -21,6 +23,8 @@ def main() -> None:
             op.print_title_panel("Welcome to TradingPro 2020")
             trade_type = input("What type of trading will you be doing\n\t1.Swing Trading\n\t2.Value "
                                "Investing\n\t3.Screen For Value Stocks\n\t4.Portfolio Evaluator --> ")
+            if trade_type == "":
+                trade_type = DEFAULT_MENU_OPTION
             if trade_type == "1" or trade_type == "2":
                 stocks = input("Enter each stock symbol separated by a space:\n")
                 stock_list = stocks.split(" ")

@@ -159,8 +159,10 @@ def print_intrinsic_value(results: dict, ivc_keys) -> None:
         Current Market Price: --> ${results[ivc_keys.evaluation.value][ivc_keys.market_price.value]} <--
         Projections using Cash flow from Operations:
                 Cash Flow from Ops: ${results[ivc_keys.cash_from_ops_calcs.value][ivc_keys.cash_from_ops.value]:,}
-                Cash Per Share: ${_clean_number(results[ivc_keys.cash_from_ops_calcs.value][ivc_keys.cash_per_share.value])}
-                Debt Per Share: ${_clean_number(results[ivc_keys.cash_from_ops_calcs.value][ivc_keys.debt_per_share.value])}
+                Cash Per Share: ${_clean_number(
+        results[ivc_keys.cash_from_ops_calcs.value][ivc_keys.cash_per_share.value])} 
+                Debt Per Share: ${_clean_number(
+        results[ivc_keys.cash_from_ops_calcs.value][ivc_keys.debt_per_share.value])}
                 Intrinsic Value: --> ${_clean_number(
         results[ivc_keys.cash_from_ops_calcs.value][
             ivc_keys.intrinsic_value.value][ivc_keys.intrinsic_value.value])} <-- 
@@ -168,8 +170,10 @@ def print_intrinsic_value(results: dict, ivc_keys) -> None:
         results[ivc_keys.evaluation.value][ivc_keys.market_delta_cash_flow.value])}
         Projections using Net Income:
                 Net Income: ${results[ivc_keys.net_income_calcs.value][ivc_keys.net_income.value]:,}
-                Cash Per Share: ${_clean_number(results[ivc_keys.net_income_calcs.value][ivc_keys.cash_per_share.value])}
-                Debt Per Share: ${_clean_number(results[ivc_keys.net_income_calcs.value][ivc_keys.debt_per_share.value])}
+                Cash Per Share: ${_clean_number(
+        results[ivc_keys.net_income_calcs.value][ivc_keys.cash_per_share.value])}
+                Debt Per Share: ${_clean_number(
+        results[ivc_keys.net_income_calcs.value][ivc_keys.debt_per_share.value])}
                 Intrinsic Value: --> ${_clean_number(
         results[ivc_keys.net_income_calcs.value][ivc_keys.intrinsic_value.value][ivc_keys.intrinsic_value.value])} <--
                 Delta (Net Income): {_clean_number(
