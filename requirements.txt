@@ -4,3 +4,5 @@ tqdm
 holidays
 requests_html
 pytest
+pyinstaller
+tabulate

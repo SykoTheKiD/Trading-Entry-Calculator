@@ -11,6 +11,7 @@ from finviz import get_peg_ratio, get_company_name, get_eps_growth
 from fuzzy import fuzzy_increase
 from statement_retrieval import StatementAttribute
 
+from urllib.error import HTTPError
 
 class FlowThreshold:
     def __init__(self, operation, threshold):
@@ -18,7 +19,8 @@ class FlowThreshold:
         self.threshold = threshold
 
 
-DEBT_SERVICING_RATIO_THRESHOLD: FlowThreshold = FlowThreshold(le, 0.3)
+DEBT_SERVICING_RATIO_THRESHOLD: float = 0.3
+
 CASH_FLOW_FROM_INVESTING_THRESHOLD: FlowThreshold = FlowThreshold(gt, 0)
 CASH_FLOW_FROM_FINANCING_THRESHOLD: FlowThreshold = FlowThreshold(gt, 0)
 
@@ -66,6 +68,12 @@ class VIKeys(Enum):
     roe_industry = "ROE Industry"
     dtoe_company = "D to E Company"
     dtoe_industry = "D to E Industry"
+    return_on_equity_fcf_list_evaluate = "ROE FCF Check"
+    return_on_equity_net_income_list_evaluate = "ROE Net Income Check"
+    eps_5yr_check = "5 YR EPS Check"
+    net_profit_margin_evaluate = "Net profit margin industry compare"
+    return_on_equity_evaluate = "ROE industry compare"
+    debt_to_equity_ratio_evaluate = "Debt to Equity compare"
 
 
 def calculate_ratios(lst1: list, lst2: list) -> list:
@@ -107,6 +115,20 @@ def evaluate_peg_ratio(peg_ratio: float) -> Optional[bool]:
         return None
     return peg_ratio <= 1.6
 
+def evaluate_debt_servicing_ratios(ratios: list) -> list:
+    return [i <= DEBT_SERVICING_RATIO_THRESHOLD for i in ratios]
+
+def evaluate_roes(roes: list) -> list:
+    for i in roes:
+        if not 0.12 <= i <= 0.15:
+            return False
+    return fuzzy_increase(roes, stret.RETURN_ON_EQUITY_ATTR)
+
+def evaluate_eps(eps: float) -> bool:
+    return eps >= 10
+
+def compare_to_industry(val1, val2):
+    return val1 > val2
 
 def main(stock: str) -> None:
     cash_from_investments = sys.maxsize
@@ -137,6 +159,10 @@ def main(stock: str) -> None:
     except KeyError as e:
         op.log_error(e)
         return
+    except HTTPError as e2:
+        print(f"--{stock} was not found--")
+        op.log_error(e2)
+        raise e2
 
     op.loading_message("Parsing Years")
     years = []
@@ -253,8 +279,7 @@ def main(stock: str) -> None:
         VIKeys.debt_to_equity_ratio_trend.value: fuzzy_increase(
             stret.DEBT_TO_EQUITY_RATIO_ATTR, de_ratios),
         VIKeys.debt_servicing_ratio_free_cash_flow.value: debt_servicing_ratios_fcf,
-        VIKeys.debt_servicing_ratio_free_cash_flow_decision.value: calculate_flow_graph(
-            [debt_servicing_ratios_fcf], DEBT_SERVICING_RATIO_THRESHOLD),
+        VIKeys.debt_servicing_ratio_free_cash_flow_decision.value: evaluate_debt_servicing_ratios(debt_servicing_ratios_fcf),
         VIKeys.cash_flow_from_ops.value: cash_flow_from_ops,
         VIKeys.cash_flow_from_ops_trend.value: fuzzy_increase(
             stret.CASH_FLOW_FROM_OPERATIONS_ATTR, cash_flow_from_ops),
@@ -278,16 +303,22 @@ def main(stock: str) -> None:
         VIKeys.years.value: years,
         VIKeys.free_cash_flow_revenue.value: fcf_revenues,
         VIKeys.return_on_equity_fcf.value: return_on_equity_fcf,
+        VIKeys.return_on_equity_fcf_list_evaluate.value: evaluate_roes(return_on_equity_fcf),
         VIKeys.return_on_equity_net_income.value: return_on_equity_net_income,
+        VIKeys.return_on_equity_net_income_list_evaluate.value: evaluate_roes(return_on_equity_net_income),
         VIKeys.quarters.value: quarters,
         VIKeys.eps_current.value: eps_current,
         VIKeys.eps_1yr.value: eps_1yr,
         VIKeys.eps_5yr.value: eps_5yr,
+        VIKeys.eps_5yr_check.value: evaluate_eps(eps_5yr),
         VIKeys.company_npm.value: company_npm,
         VIKeys.industry_npm.value: industry_npm,
+        VIKeys.net_profit_margin_evaluate.value: compare_to_industry(company_npm, industry_npm),
         VIKeys.roe_company.value: roe_company,
         VIKeys.roe_industry.value: roe_industry,
+        VIKeys.return_on_equity_evaluate.value: compare_to_industry(roe_company, roe_industry),
         VIKeys.dtoe_company.value: debt_to_equity_company,
-        VIKeys.dtoe_industry.value: debt_to_equity_industry
+        VIKeys.dtoe_industry.value: debt_to_equity_industry,
+        VIKeys.debt_to_equity_ratio_evaluate.value: compare_to_industry(debt_to_equity_industry, debt_to_equity_company)
     }
     op.print_value_investing_report(results, VIKeys)

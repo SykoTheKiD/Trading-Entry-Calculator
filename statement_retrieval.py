@@ -78,6 +78,7 @@ CASH_FROM_INVESTMENTS_ATTR = StatementAttribute(StatementKeys.cash_from_investme
 CASH_FROM_FINANCING_ATTR = StatementAttribute(StatementKeys.cash_from_financing.value, CASH_FLOW_STATEMENT, operator.ge)
 INTEREST_EXPENSE_ATTR = StatementAttribute(StatementKeys.net_interest_expense.value, INCOME_STATEMENT, operator.ge)
 DEBT_TO_EQUITY_RATIO_ATTR = StatementAttribute(None, None, operator.le)
+RETURN_ON_EQUITY_ATTR = StatementAttribute(None, None, operator.gt)
 
 
 def get_financial_statement(statement_type: str, stocks: str, quarterly=False) -> dict:

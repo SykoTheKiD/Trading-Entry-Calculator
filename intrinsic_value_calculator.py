@@ -113,7 +113,7 @@ def get_projected_cash_flow(current_cash: float, initial_growth: float, projecte
 
 
 def calculate_discount_rates(initial_discount_rate: float) -> list:
-    discount_rates = []
+    discount_rates:list = []
     for i in range(NUM_YEARS_PROJECTED):
         rate = 1 / (1 + initial_discount_rate) ** (i + 1)
         discount_rates.append(rate)
@@ -121,11 +121,12 @@ def calculate_discount_rates(initial_discount_rate: float) -> list:
 
 
 def calculate_discounted_values(projected_cash_flows: list, discount_rates: list) -> list:
-    assert len(projected_cash_flows) == len(discount_rates)
-    discounted_values = []
-    for i in range(len(discount_rates)):
-        discounted_values.append(projected_cash_flows[i] * discount_rates[i])
-    return discounted_values
+    if len(projected_cash_flows) == len(discount_rates):
+        discounted_values:list = []
+        for i in range(len(discount_rates)):
+            discounted_values.append(projected_cash_flows[i] * discount_rates[i])
+        return discounted_values
+    raise ValueError
 
 
 def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares: float, total_debt_current_debt: float,
@@ -139,6 +140,8 @@ def calculate_intrinsic_value(projected_growth_sum: float, no_outstanding_shares
             IVCKeys.cash_per_share.value: cash_per_share,
             IVCKeys.intrinsic_value.value: intrinsic_value}
 
+def evaluate_intrinsic_value(delta: float) -> bool:
+    return delta <= 100
 
 # noinspection PyGlobalUndefined
 def main(stock_symbol: str, show=True) -> dict:
@@ -249,7 +252,6 @@ def main(stock_symbol: str, show=True) -> dict:
             IVCKeys.intrinsic_value.value: intrinsic_value_cash_flow,
             IVCKeys.debt_per_share.value: intrinsic_value_cash_flow[IVCKeys.debt_per_share.value],
             IVCKeys.cash_per_share.value: intrinsic_value_cash_flow[IVCKeys.cash_per_share.value]
-
         },
         IVCKeys.net_income_calcs.value: {
             IVCKeys.net_income.value: current_year_net_income,

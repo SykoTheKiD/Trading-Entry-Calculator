@@ -17,16 +17,17 @@ def retryable(max_tries: int):
         # noinspection PyBroadException,PyTypeChecker
         @wraps(func)
         def inner(*args, **kwargs):
-            num_tries = 0
+            num_tries:int = 0
+            function_name:str = func.__name__
             while num_tries < max_tries:
                 try:
                     return func(*args, **kwargs)
                 except Exception:
-                    function_name = func.__name__
                     op.log_error(f"Decorator error --> {function_name}")
                     num_tries = num_tries + 1
                     time.sleep(WAIT_TIME)
-            raise exceptions.NetworkException(f"Could not retrieve data from function {function_name} values with {max_tries} re-tries")
+            raise exceptions.NetworkException(f"Could not retrieve data from function {function_name} "
+                                              f"values with {max_tries} re-tries")
 
         return inner
 
@@ -40,8 +41,8 @@ def write_to_file(file_prefix: str):
         def inner(*args, **kwargs):
             if WRITE_TO_FILE:
                 now = datetime.datetime.now()
-                date_now = now.strftime("%Y-%m-%d-%H-%M")
-                file_path = os.path.join('.', "reports", f"{file_prefix}-{date_now}.txt")
+                date_now: str = now.strftime("%Y-%m-%d-%H-%M")
+                file_path: str = os.path.join('.', "reports", f"{file_prefix}-{date_now}.txt")
                 original_std_out = sys.stdout
                 sys.stdout = open(file_path, 'w+')
                 func(*args, **kwargs)
